@@ -15,7 +15,6 @@ void dump(uint8_t *ptr, size_t size, char* filename) {
 	unlink(filename);
 	int ofd = open(filename, O_WRONLY|O_CREAT, 0644);
 	assert(ofd >= 0);
-	printf("pos = %p\n", ptr);
 	int ret = write(ofd, ptr, size);
 	assert(ret == size);
 	close(ofd);
@@ -28,6 +27,7 @@ void dump_ramdisk(uint8_t *ptr, size_t size) {
 		dump(ptr, size, "ramdisk.gz");
 	//MTK header
 	} else if(memcmp(ptr, "\x88\x16\x88\x58", 4) == 0) {
+		dump(ptr, 0, "ramdisk-mtk"); //Create an mtk flag
 		dump_ramdisk(ptr+512, size-512);
 	} else {
 		//Since our first aim is to extract/repack ramdisk
@@ -38,6 +38,24 @@ void dump_ramdisk(uint8_t *ptr, size_t size) {
 		fprintf(stderr, "Unknown ramdisk type\n");
 		abort();
 	}
+}
+
+int search_security(uint8_t *buf, size_t size, int pos) {
+	//Rockchip signature
+	if(memcmp(buf+1024, "SIGN", 4) == 0) {
+		//Rockchip signature AT LEAST means the bootloader will check the crc
+		dump(buf, 0, "rkcrc"); //Create an flag to tell it
+
+		//And it's possible there is a security too
+		return 1;
+	}
+
+	//If we didn't parse the whole file, it is highly likely there is a boot signature
+	if(pos < size) {
+		return 1;
+	}
+
+	return 0;
 }
 
 /*
@@ -97,9 +115,11 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	//Ensure we parsed the whole file
-	printf("%ld => %ld\n", pos, size);
-	assert(pos >= size);
+	//If we think we find some security-related infos in the boot.img
+	//create a "secure" flag to warn the user it is dangerous
+	if(search_security(base, size, pos)) {
+		dump(base, 0, "secure");
+	}
 
 	munmap(orig, size);
 	close(fd);
