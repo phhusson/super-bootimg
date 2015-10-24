@@ -1,7 +1,7 @@
 CC=clang
 CFLAGS=-Wall -std=gnu11
 
-TARGETS=extract
+TARGETS=extract repack
 
 all: $(TARGETS)
 
