@@ -123,4 +123,5 @@ int main(int argc, char **argv) {
 
 	munmap(orig, size);
 	close(fd);
+	return 0;
 }
