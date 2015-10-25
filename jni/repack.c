@@ -27,8 +27,11 @@ int append_ramdisk(int ofd, off_t pos) {
 	if(access("ramdisk-mtk", R_OK) == 0) {
 		fprintf(stderr, "Repacking mtk-style ramdisk is not supported yet\n");
 		exit(1);
+	} else if(access("ramdisk.gz", R_OK) == 0) {
+		return append_file(ofd, "ramdisk.gz", pos);
+	} else {
+		return append_file(ofd, "ramdisk", pos);
 	}
-	return append_file(ofd, "ramdisk", pos);
 }
 
 void post_process(struct boot_img_hdr *hdr, int ofd, int pos) {
