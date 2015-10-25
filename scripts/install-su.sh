@@ -37,7 +37,18 @@ fi
 cp "$homedir"/bin/su .
 if [ -f "sepolicy" ];then
 	if [ "$2" == "eng" ];then
+		#su is the context of the file (nothing more)
+		#su_daemon and su_client contexts should be explicit
+		"$homedir"/bin/sepolicy-inject -Z su_daemon -P sepolicy
+		"$homedir"/bin/sepolicy-inject -Z su_client -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z su -P sepolicy
+		#Transition from init to su_exec if filecon is "su"
+		"$homedir"/bin/sepolicy-inject -s init -t su_daemon -c process -f su -P sepolicy
+		#Transition from untrusted_app to su_client
+		#TODO: other contexts want access to su?
+		"$homedir"/bin/sepolicy-inject -s untrusted_app -t su_client -c process -f su -P sepolicy
+		"$homedir"/bin/sepolicy-inject -s shell -t su_client -c process -f su -P sepolicy
+
 		"$homedir"/bin/sepolicy-inject -Z init -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z shell -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
