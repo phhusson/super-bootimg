@@ -34,6 +34,9 @@ if [ -f "sepolicy" ];then
 	"$homedir"/bin/sepolicy-inject -Z init -P sepolicy
 	"$homedir"/bin/sepolicy-inject -Z shell -P sepolicy
 	"$homedir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
+	"$homedir"/bin/sepolicy-inject -Z toolbox -P sepolicy
+	"$homedir"/bin/sepolicy-inject -Z zygote -P sepolicy
+	"$homedir"/bin/sepolicy-inject -Z servicemanager -P sepolicy
 fi
 
 echo -e 'service su /su --daemon\n\tclass main\n' >> init.rc
