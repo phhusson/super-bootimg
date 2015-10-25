@@ -56,9 +56,13 @@ function allowTransition() {
 
 #allowSuClient <scontext>
 function allowSuClient() {
-	allow $1 su file "getattr execute read open"
-	allow $1 su file "execute_no_trans"
-	allow $1 su_daemon unix_stream_socket "connectto getopt"
+	allow $1 su_exec file "getattr execute read open"
+	allow $1 su_exec file "execute_no_trans"
+	allow $1 su unix_stream_socket "connectto getopt"
+
+	allow $1 su_device dir "search read"
+	allow $1 su_device sock_file "read write"
+
 }
 
 #allowLog <scontext>
@@ -72,28 +76,37 @@ function allowLog() {
 cp "$homedir"/bin/su .
 if [ -f "sepolicy" ];then
 	#Create domains if they don't exist
-	"$homedir"/bin/sepolicy-inject -z su_daemon -P sepolicy
 	"$homedir"/bin/sepolicy-inject -z su -P sepolicy
+	"$homedir"/bin/sepolicy-inject -z su_device -P sepolicy
+	"$homedir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
 
 	#Init calls restorecon /su
-	allow init su file "relabelto"
-	allow su rootfs filesystem "associate"
-	#Transition from init to su_exec if filecon is "su"
-	allowTransition init su su_daemon
+	allow init su_exec file "relabelto"
+	allow su_exec rootfs filesystem "associate"
+	#Transition from init to su if filecon is "su_exec"
+	allowTransition init su_exec su
+
+	#Autotransition su's socket to su_device
+	"$homedir"/bin/sepolicy-inject -s su -f device -c file -t su_device -P sepolicy
+	"$homedir"/bin/sepolicy-inject -s su -f device -c dir -t su_device -P sepolicy
+	allow su_device tmpfs filesystem "associate"
 
 	#Transition from untrusted_app to su_client
 	#TODO: other contexts want access to su?
 	allowSuClient shell
 	allowSuClient untrusted_app
 
-	allowLog su_daemon
+	allowLog su
 
 	if [ "$2" == "eng" ];then
-		#su is the context of the file (nothing more)
-		#su_daemon and su_client contexts should be explicit
-		"$homedir"/bin/sepolicy-inject -Z su_daemon -P sepolicy
+		"$homedir"/bin/sepolicy-inject -Z su -P sepolicy
 
 		"$homedir"/bin/sepolicy-inject -Z toolbox -P sepolicy
+		"$homedir"/bin/sepolicy-inject -a su_device -P sepolicy
+		"$homedir"/bin/sepolicy-inject -a su  -P sepolicy
+		"$homedir"/bin/sepolicy-inject -a su_exec -P sepolicy
+		"$homedir"/bin/sepolicy-inject -a untrusted_app -P sepolicy
+		"$homedir"/bin/sepolicy-inject -a zygote -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z zygote -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z servicemanager -P sepolicy
 	else
@@ -104,7 +117,7 @@ fi
 
 sed -i -E '/on init/a \\trestorecon /su' init.rc
 echo -e 'service su /su --daemon\n\tclass main\n' >> init.rc
-echo -e '/su\tu:object_r:su:s0' >> file_contexts
+echo -e '/su\tu:object_r:su_exec:s0' >> file_contexts
 
 echo -e 'su\ninit.rc\nsepolicy\nfile_contexts' | cpio -o -H newc > ramdisk2
 
