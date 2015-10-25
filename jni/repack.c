@@ -39,6 +39,8 @@ void post_process(struct boot_img_hdr *hdr, int ofd, int pos) {
 		fprintf(stderr, "Rockchip CRCs not supported yet\n");
 		exit(1);
 	}
+	//Round up the file size
+	ftruncate(ofd, pos);
 }
 
 int main(int argc, char **argv) {
