@@ -1,5 +1,10 @@
 #!/system/bin/sh
 
+if [ "$#" == 0 ];then
+	echo "Usage: $0 <original boot.img> [eng|user]"
+	exit 1
+fi
+
 set -e
 
 function cleanup() {
@@ -31,17 +36,25 @@ fi
 
 cp "$homedir"/bin/su .
 if [ -f "sepolicy" ];then
-	"$homedir"/bin/sepolicy-inject -Z init -P sepolicy
-	"$homedir"/bin/sepolicy-inject -Z shell -P sepolicy
-	"$homedir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
-	"$homedir"/bin/sepolicy-inject -Z toolbox -P sepolicy
-	"$homedir"/bin/sepolicy-inject -Z zygote -P sepolicy
-	"$homedir"/bin/sepolicy-inject -Z servicemanager -P sepolicy
+	if [ "$2" == "eng" ];then
+		"$homedir"/bin/sepolicy-inject -Z su -P sepolicy
+		"$homedir"/bin/sepolicy-inject -Z init -P sepolicy
+		"$homedir"/bin/sepolicy-inject -Z shell -P sepolicy
+		"$homedir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
+		"$homedir"/bin/sepolicy-inject -Z toolbox -P sepolicy
+		"$homedir"/bin/sepolicy-inject -Z zygote -P sepolicy
+		"$homedir"/bin/sepolicy-inject -Z servicemanager -P sepolicy
+	else
+		echo "Only eng mode supported yet"
+		exit 1
+	fi
 fi
 
+sed -i -E '/on init/a \\trestorecon /su' init.rc
 echo -e 'service su /su --daemon\n\tclass main\n' >> init.rc
+echo -e '/su\tu:object_r:su:s0' >> file_contexts
 
-echo -e 'su\ninit.rc\nsepolicy' | cpio -o -H newc > ramdisk2
+echo -e 'su\ninit.rc\nsepolicy\nfile_contexts' | cpio -o -H newc > ramdisk2
 
 if [ -f "$d"/ramdisk.gz ];then
 	#TODO: Why can't I recreate initramfs from scratch?
