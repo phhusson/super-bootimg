@@ -21,6 +21,7 @@ cd "$d2"
 
 if [ -f "$d"/ramdisk.gz ];then
 	gunzip -c < "$d"/ramdisk.gz |cpio -i
+	gunzip -c < "$d"/ramdisk.gz > ramdisk1
 else
 	echo "Unknown ramdisk format"
 	cd "$homedir"
@@ -37,8 +38,13 @@ fi
 
 echo -e 'service su /su --daemon\n\tclass main\n' >> init.rc
 
+echo -e 'su\ninit.rc\nsepolicy' | cpio -o -H newc > ramdisk2
+
 if [ -f "$d"/ramdisk.gz ];then
-	find . |cpio -o -H newc | gzip -9 -c > "$d"/ramdisk.gz
+	#TODO: Why can't I recreate initramfs from scratch?
+	#Instead I use the append method. files gets overwritten by the last version if they appear twice
+	#Hence sepolicy/su/init.rc are our version
+	cat ramdisk1 ramdisk2 |gzip -9 -c > "$d"/ramdisk.gz
 fi
 cd "$d"
 rm -Rf "$d2"
