@@ -34,6 +34,35 @@ else
 	exit 1
 fi
 
+#allow <list of scontext> <list of tcontext> <class> <list of perm>
+function allow() {
+	for s in $1;do
+		for t in $2;do
+			for p in $4;do
+				"$homedir"/bin/sepolicy-inject -s $s -t $t -c $3 -p $p -P sepolicy
+			done
+		done
+	done
+}
+
+#allowTransition scon fcon tcon
+function allowTransition() {
+	allow $1 $2 file "getattr execute read open"
+	allow $1 $3 process transition
+	allow $3 $1 process sigchld
+	#Auto transition
+	"$homedir"/bin/sepolicy-inject -s $1 -t $3 -c process -f $2 -P sepolicy
+}
+
+#allowSuClient <scontext>
+function allowSuClient() {
+	allow $1 su file "getattr execute read open"
+	allow $1 su_client process transition
+	allow su_client $1 process sigchld
+	#Auto transition
+	"$homedir"/bin/sepolicy-inject -s $1 -t su_client -c process -f su -P sepolicy
+}
+
 cp "$homedir"/bin/su .
 if [ -f "sepolicy" ];then
 	if [ "$2" == "eng" ];then
@@ -42,16 +71,17 @@ if [ -f "sepolicy" ];then
 		"$homedir"/bin/sepolicy-inject -Z su_daemon -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z su_client -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z su -P sepolicy
+
+		#Init calls restorecon /su
+		allow init su file "relabelto"
 		#Transition from init to su_exec if filecon is "su"
-		"$homedir"/bin/sepolicy-inject -s init -t su_daemon -c process -f su -P sepolicy
+		allowTransition init su su_daemon
+
 		#Transition from untrusted_app to su_client
 		#TODO: other contexts want access to su?
-		"$homedir"/bin/sepolicy-inject -s untrusted_app -t su_client -c process -f su -P sepolicy
-		"$homedir"/bin/sepolicy-inject -s shell -t su_client -c process -f su -P sepolicy
+		allowSuClient shell
+		allowSuClient untrusted_app
 
-		"$homedir"/bin/sepolicy-inject -Z init -P sepolicy
-		"$homedir"/bin/sepolicy-inject -Z shell -P sepolicy
-		"$homedir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z toolbox -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z zygote -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z servicemanager -P sepolicy
