@@ -57,30 +57,41 @@ function allowTransition() {
 #allowSuClient <scontext>
 function allowSuClient() {
 	allow $1 su file "getattr execute read open"
-	allow $1 su_client process transition
-	allow su_client $1 process sigchld
-	#Auto transition
-	"$homedir"/bin/sepolicy-inject -s $1 -t su_client -c process -f su -P sepolicy
+	allow $1 su file "execute_no_trans"
+	allow $1 su_daemon unix_stream_socket "connectto getopt"
+}
+
+#allowLog <scontext>
+function allowLog() {
+	allow $1 logdw_socket sock_file "write"
+	allow $1 logd unix_dgram_socket "sendto"
+	allow logd $1 dir "search"
+	allow logd $1 file "read open getattr"
 }
 
 cp "$homedir"/bin/su .
 if [ -f "sepolicy" ];then
+	#Create domains if they don't exist
+	"$homedir"/bin/sepolicy-inject -z su_daemon -P sepolicy
+	"$homedir"/bin/sepolicy-inject -z su -P sepolicy
+
+	#Init calls restorecon /su
+	allow init su file "relabelto"
+	allow su rootfs filesystem "associate"
+	#Transition from init to su_exec if filecon is "su"
+	allowTransition init su su_daemon
+
+	#Transition from untrusted_app to su_client
+	#TODO: other contexts want access to su?
+	allowSuClient shell
+	allowSuClient untrusted_app
+
+	allowLog su_daemon
+
 	if [ "$2" == "eng" ];then
 		#su is the context of the file (nothing more)
 		#su_daemon and su_client contexts should be explicit
 		"$homedir"/bin/sepolicy-inject -Z su_daemon -P sepolicy
-		"$homedir"/bin/sepolicy-inject -Z su_client -P sepolicy
-		"$homedir"/bin/sepolicy-inject -Z su -P sepolicy
-
-		#Init calls restorecon /su
-		allow init su file "relabelto"
-		#Transition from init to su_exec if filecon is "su"
-		allowTransition init su su_daemon
-
-		#Transition from untrusted_app to su_client
-		#TODO: other contexts want access to su?
-		allowSuClient shell
-		allowSuClient untrusted_app
 
 		"$homedir"/bin/sepolicy-inject -Z toolbox -P sepolicy
 		"$homedir"/bin/sepolicy-inject -Z zygote -P sepolicy
