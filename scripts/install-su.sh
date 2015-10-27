@@ -73,7 +73,7 @@ function allowLog() {
 	allow logd $1 file "read open getattr"
 }
 
-cp "$homedir"/bin/su .
+cp "$homedir"/bin/su sbin/su
 if [ -f "sepolicy" ];then
 	#Create domains if they don't exist
 	"$homedir"/bin/sepolicy-inject -z su -P sepolicy
@@ -115,11 +115,11 @@ if [ -f "sepolicy" ];then
 	fi
 fi
 
-sed -i -E '/on init/a \\trestorecon /su' init.rc
-echo -e 'service su /su --daemon\n\tclass main\n' >> init.rc
-echo -e '/su\tu:object_r:su_exec:s0' >> file_contexts
+sed -i -E '/on init/a \\trestorecon /su\n\tchmod 0755 /sbin' init.rc
+echo -e 'service su /sbin/su --daemon\n\tclass main\n' >> init.rc
+echo -e '/sbin/su\tu:object_r:su_exec:s0' >> file_contexts
 
-echo -e 'su\ninit.rc\nsepolicy\nfile_contexts' | cpio -o -H newc > ramdisk2
+echo -e 'sbin/su\ninit.rc\nsepolicy\nfile_contexts' | cpio -o -H newc > ramdisk2
 
 if [ -f "$d"/ramdisk.gz ];then
 	#TODO: Why can't I recreate initramfs from scratch?
