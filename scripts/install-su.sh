@@ -17,10 +17,11 @@ set -e
 
 f="$(readlink -f "$1")"
 homedir="$PWD"
+scriptdir="$(dirname "$(readlink -f "$0")")"
 d="$(mktemp -d)"
 cd "$d"
 
-"$homedir/bin/bootimg-extract" "$f"
+"$scriptdir/bin/bootimg-extract" "$f"
 d2="$(mktemp -d)"
 cd "$d2"
 
@@ -39,7 +40,7 @@ function allow() {
 	for s in $1;do
 		for t in $2;do
 			for p in $4;do
-				"$homedir"/bin/sepolicy-inject -s $s -t $t -c $3 -p $p -P sepolicy
+				"$scriptdir"/bin/sepolicy-inject -s $s -t $t -c $3 -p $p -P sepolicy
 			done
 		done
 	done
@@ -73,7 +74,7 @@ function allowLog() {
 	allow logd $1 file "read open getattr"
 }
 
-cp "$homedir"/bin/su sbin/su
+cp "$scriptdir"/bin/su sbin/su
 if [ -f "sepolicy" ];then
 	#Create domains if they don't exist
 	"$homedir"/bin/sepolicy-inject -z su -P sepolicy
@@ -87,8 +88,8 @@ if [ -f "sepolicy" ];then
 	allowTransition init su_exec su
 
 	#Autotransition su's socket to su_device
-	"$homedir"/bin/sepolicy-inject -s su -f device -c file -t su_device -P sepolicy
-	"$homedir"/bin/sepolicy-inject -s su -f device -c dir -t su_device -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject -s su -f device -c file -t su_device -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject -s su -f device -c dir -t su_device -P sepolicy
 	allow su_device tmpfs filesystem "associate"
 
 	#Transition from untrusted_app to su_client
@@ -99,16 +100,19 @@ if [ -f "sepolicy" ];then
 	allowLog su
 
 	if [ "$2" == "eng" ];then
-		"$homedir"/bin/sepolicy-inject -Z su -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
 
-		"$homedir"/bin/sepolicy-inject -Z toolbox -P sepolicy
-		"$homedir"/bin/sepolicy-inject -a su_device -P sepolicy
-		"$homedir"/bin/sepolicy-inject -a su  -P sepolicy
-		"$homedir"/bin/sepolicy-inject -a su_exec -P sepolicy
-		"$homedir"/bin/sepolicy-inject -a untrusted_app -P sepolicy
-		"$homedir"/bin/sepolicy-inject -a zygote -P sepolicy
-		"$homedir"/bin/sepolicy-inject -Z zygote -P sepolicy
-		"$homedir"/bin/sepolicy-inject -Z servicemanager -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -Z toolbox -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -a su_device -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -a su  -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -a untrusted_app -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -a zygote -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -Z zygote -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -Z servicemanager -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
+
+		"$scriptdir"/bin/sepolicy-inject -Z init -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -Z init_shell -P sepolicy
 	else
 		echo "Only eng mode supported yet"
 		exit 1
@@ -129,7 +133,7 @@ if [ -f "$d"/ramdisk.gz ];then
 fi
 cd "$d"
 rm -Rf "$d2"
-"$homedir/bin/bootimg-repack" "$f"
+"$scriptdir/bin/bootimg-repack" "$f"
 cp new-boot.img "$homedir"
 
 cd "$homedir"
