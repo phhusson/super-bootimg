@@ -46,24 +46,14 @@ function allow() {
 	done
 }
 
-#allowTransition scon fcon tcon
-function allowTransition() {
-	allow $1 $2 file "getattr execute read open"
-	allow $1 $3 process transition
-	allow $3 $1 process sigchld
-	#Auto transition
-	"$homedir"/bin/sepolicy-inject -s $1 -t $3 -c process -f $2 -P sepolicy
-}
-
 #allowSuClient <scontext>
 function allowSuClient() {
-	allow $1 su_exec file "getattr execute read open"
-	allow $1 su_exec file "execute_no_trans"
+	#All domain-s already have read access to rootfs
+	allow $1 rootfs file "execute_no_trans execute" #TODO: Why do I need execute?!? (on MTK 5.1, kernel 3.10)
 	allow $1 su unix_stream_socket "connectto getopt"
 
 	allow $1 su_device dir "search read"
 	allow $1 su_device sock_file "read write"
-
 }
 
 #allowLog <scontext>
@@ -77,15 +67,9 @@ function allowLog() {
 cp "$scriptdir"/bin/su sbin/su
 if [ -f "sepolicy" ];then
 	#Create domains if they don't exist
-	"$homedir"/bin/sepolicy-inject -z su -P sepolicy
-	"$homedir"/bin/sepolicy-inject -z su_device -P sepolicy
-	"$homedir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
-
-	#Init calls restorecon /su
-	allow init su_exec file "relabelto"
-	allow su_exec rootfs filesystem "associate"
-	#Transition from init to su if filecon is "su_exec"
-	allowTransition init su_exec su
+	"$scriptdir"/bin/sepolicy-inject -z su -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject -z su_device -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
 
 	#Autotransition su's socket to su_device
 	"$scriptdir"/bin/sepolicy-inject -s su -f device -c file -t su_device -P sepolicy
@@ -119,9 +103,8 @@ if [ -f "sepolicy" ];then
 	fi
 fi
 
-sed -i -E '/on init/a \\trestorecon /su\n\tchmod 0755 /sbin' init.rc
-echo -e 'service su /sbin/su --daemon\n\tclass main\n' >> init.rc
-echo -e '/sbin/su\tu:object_r:su_exec:s0' >> file_contexts
+sed -i -E '/on init/a \\tchmod 0755 /sbin' init.rc
+echo -e 'service su /sbin/su --daemon\n\tclass main\n\tseclabel u:r:su:s0\n' >> init.rc
 
 echo -e 'sbin/su\ninit.rc\nsepolicy\nfile_contexts' | cpio -o -H newc > ramdisk2
 
