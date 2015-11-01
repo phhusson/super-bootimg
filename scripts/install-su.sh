@@ -69,7 +69,6 @@ if [ -f "sepolicy" ];then
 	#Create domains if they don't exist
 	"$scriptdir"/bin/sepolicy-inject -z su -P sepolicy
 	"$scriptdir"/bin/sepolicy-inject -z su_device -P sepolicy
-	"$scriptdir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
 
 	#Autotransition su's socket to su_device
 	"$scriptdir"/bin/sepolicy-inject -s su -f device -c file -t su_device -P sepolicy
@@ -87,16 +86,12 @@ if [ -f "sepolicy" ];then
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
 
 		"$scriptdir"/bin/sepolicy-inject -Z toolbox -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -a su_device -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -a su  -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -a untrusted_app -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -a zygote -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -a mlstrustedobject -s su_device -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su  -P sepolicy
 		"$scriptdir"/bin/sepolicy-inject -Z zygote -P sepolicy
 		"$scriptdir"/bin/sepolicy-inject -Z servicemanager -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -Z untrusted_app -P sepolicy
 
 		"$scriptdir"/bin/sepolicy-inject -Z init -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -Z init_shell -P sepolicy
 	else
 		echo "Only eng mode supported yet"
 		exit 1
