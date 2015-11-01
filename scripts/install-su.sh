@@ -80,18 +80,16 @@ if [ -f "sepolicy" ];then
 	allowSuClient shell
 	allowSuClient untrusted_app
 
+	#Allow init to execute su daemon/transition
+	allow init su process "transition"
+
 	allowLog su
 
+	#Need to set su_device/su as trusted to be accessible from other categories
+	"$scriptdir"/bin/sepolicy-inject -a mlstrustedobject -s su_device -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su  -P sepolicy
 	if [ "$2" == "eng" ];then
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
-
-		"$scriptdir"/bin/sepolicy-inject -Z toolbox -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -a mlstrustedobject -s su_device -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su  -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -Z zygote -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -Z servicemanager -P sepolicy
-
-		"$scriptdir"/bin/sepolicy-inject -Z init -P sepolicy
 	else
 		echo "Only eng mode supported yet"
 		exit 1
