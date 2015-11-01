@@ -59,9 +59,15 @@ function allowSuClient() {
 	allow su_daemon $1 fifo_file "read write getattr ioctl"
 
 	#Read /proc/callerpid/cmdline in from_init, drop?
+	#Requiring sys_ptrace sucks
 	allow su_daemon "$1" "dir" "search"
 	allow su_daemon "$1" "file" "read open"
 	allow su_daemon "$1" "lnk_file" "read"
+	allow su_daemon su_daemon "capability" "sys_ptrace"
+
+	#TODO: Split in for su/su_sensitive/su_cts
+	allow su "$1" "fd" "use"
+	allow su "$1" "fifo_file" "read write"
 }
 
 #allowLog <scontext>
@@ -70,6 +76,12 @@ function allowLog() {
 	allow $1 logd unix_dgram_socket "sendto"
 	allow logd $1 dir "search"
 	allow logd $1 file "read open getattr"
+	allow $1 $1 dir "search read"
+	allow $1 $1 "unix_dgram_socket" "create connect write"
+	allow $1 $1 "lnk_file" "read"
+	allow $1 $1 file "read"
+	allow $1 toolbox_exec file "read"
+	allow $1 devpts chr_file "read write open"
 }
 
 function suDaemonTo() {
@@ -78,11 +90,27 @@ function suDaemonTo() {
 }
 
 function suRights() {
-	#am start superuser apk
+	#Communications with su_daemon
+	allow $1 "su_daemon" fd "use"
+	allow $1 "su_daemon" process "sigchld"
+	allow $1 "su_daemon" "unix_stream_socket" "read write"
+
 	allow servicemanager $1 "dir" "search read"
 	allow servicemanager $1 "file" "open read"
 	allow servicemanager $1 "process" "getattr"
 	allow servicemanager $1 "binder" "transfer"
+
+	allow $1 "shell_exec zygote_exec dalvikcache_data_file toolbox_exec rootfs" file "execute read open entrypoint getattr execute_no_trans"
+	allow $1 "devpts" chr_file "getattr ioctl"
+	allow $1 $1 "file" "open getattr"
+	allow $1 $1 "unix_stream_socket" "create"
+	allow $1 $1 "process" "sigchld setpgid setsched fork"
+	allow $1 $1 "fifo_file" "read getattr write"
+	allow $1 servicemanager "binder" "call"
+	allow $1 activity_service service_manager "find"
+
+	allow $1 kernel system "syslog_read syslog_mod"
+	allow $1 $1 capability2 "syslog"
 }
 
 function suDaemonRights() {
@@ -104,9 +132,10 @@ function suDaemonRights() {
 	allow su_daemon app_data_file "file" "getattr read open lock"
 
 	#FIXME: This shouldn't exist
-	allow su_daemon su_daemon "capability" "dac_override sys_ptrace"
+	#dac_override can be fixed by having pts_slave's fd forwarded over socket
+	#Instead of forwarding the name
+	allow su_daemon su_daemon "capability" "dac_override"
 
-	#I see some forks() before even getting a su call, normal?
 	allow su_daemon su_daemon "process" "fork sigchld"
 
 	#toolbox needed for log
@@ -163,9 +192,6 @@ if [ -f "sepolicy" ];then
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su_daemon -P sepolicy
 	if [ "$2" == "eng" ];then
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
-	else
-		echo "Only eng mode supported yet"
-		exit 1
 	fi
 fi
 
