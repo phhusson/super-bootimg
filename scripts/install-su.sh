@@ -103,14 +103,16 @@ function suRights() {
 	allow $1 "shell_exec zygote_exec dalvikcache_data_file toolbox_exec rootfs" file "execute read open entrypoint getattr execute_no_trans"
 	allow $1 "devpts" chr_file "getattr ioctl"
 	allow $1 $1 "file" "open getattr"
-	allow $1 $1 "unix_stream_socket" "create"
-	allow $1 $1 "process" "sigchld setpgid setsched fork"
+	allow $1 $1 "unix_stream_socket" "create connect"
+	allow $1 $1 "process" "sigchld setpgid setsched fork signal"
 	allow $1 $1 "fifo_file" "read getattr write"
-	allow $1 servicemanager "binder" "call"
+	allow $1 "system_server servicemanager" "binder" "call transfer"
 	allow $1 activity_service service_manager "find"
 
 	allow $1 kernel system "syslog_read syslog_mod"
 	allow $1 $1 capability2 "syslog"
+
+	allow $1 untrusted_app_devpts chr_file "read write open getattr ioctl"
 }
 
 function suDaemonRights() {
@@ -190,6 +192,7 @@ if [ -f "sepolicy" ];then
 	#Need to set su_device/su as trusted to be accessible from other categories
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedobject -s su_device -P sepolicy
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su_daemon -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su -P sepolicy
 	if [ "$2" == "eng" ];then
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
 	fi
