@@ -7,6 +7,13 @@ fi
 
 set -e
 
+if [ -f "$2" ];then
+	scr="$(readlink -f "$2")"
+	used_scr=1
+else
+	scr="$PWD/changes.sh"
+fi
+
 function cleanup() {
 	rm -Rf "$bootimg_extract" "$d2"
 }
@@ -39,7 +46,9 @@ function startBootImgEdit() {
 }
 
 function addFile() {
-	[[ "$INITRAMFS_FILES" =~ "\b$1\b" ]] || INITRAMFS_FILES="$INITRAMFS_FILES $*"
+	#WARNING FIXME: If you want to add toto and toto2
+	#You must add toto2 THEN toto
+	[[ "$INITRAMFS_FILES" =~ "$1" ]] || INITRAMFS_FILES="$INITRAMFS_FILES $*"
 }
 
 function doneBootImgEdit() {
@@ -76,6 +85,9 @@ function allow() {
 
 startBootImgEdit "$1"
 
-. "$homedir"/changes.sh
+shift
+[ -n "$used_scr" ] && shift
+
+. $scr
 
 doneBootImgEdit
