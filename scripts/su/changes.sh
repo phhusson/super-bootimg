@@ -1,51 +1,5 @@
 #!/system/bin/sh
 
-if [ "$#" == 0 ];then
-	echo "Usage: $0 <original boot.img> [eng|user]"
-	exit 1
-fi
-
-set -e
-
-function cleanup() {
-	rm -Rf "$d" "$d2"
-}
-
-trap cleanup EXIT
-
-set -e
-
-f="$(readlink -f "$1")"
-homedir="$PWD"
-scriptdir="$(dirname "$(readlink -f "$0")")"
-d="$(mktemp -d)"
-cd "$d"
-
-"$scriptdir/bin/bootimg-extract" "$f"
-d2="$(mktemp -d)"
-cd "$d2"
-
-if [ -f "$d"/ramdisk.gz ];then
-	gunzip -c < "$d"/ramdisk.gz |cpio -i
-	gunzip -c < "$d"/ramdisk.gz > ramdisk1
-else
-	echo "Unknown ramdisk format"
-	cd "$homedir"
-	rm -Rf "$d" "$d2"
-	exit 1
-fi
-
-#allow <list of scontext> <list of tcontext> <class> <list of perm>
-function allow() {
-	for s in $1;do
-		for t in $2;do
-			for p in $4;do
-				"$scriptdir"/bin/sepolicy-inject -s $s -t $t -c $3 -p $p -P sepolicy
-			done
-		done
-	done
-}
-
 #allowSuClient <scontext>
 function allowSuClient() {
 	#All domain-s already have read access to rootfs
@@ -80,13 +34,13 @@ function allowLog() {
 	allow $1 $1 "unix_dgram_socket" "create connect write"
 	allow $1 $1 "lnk_file" "read"
 	allow $1 $1 file "read"
-	allow $1 toolbox_exec file "read"
+	allow $1 toolbox_exec file "read" || true
 	allow $1 devpts chr_file "read write open"
 }
 
 function suDaemonTo() {
 	allow su_daemon $1 "process" "transition"
-	allow su_daemon $1 "process" "siginh rlimitinh noatsecure"
+	noaudit su_daemon $1 "process" "siginh rlimitinh noatsecure"
 }
 
 function suRights() {
@@ -100,14 +54,15 @@ function suRights() {
 	allow servicemanager $1 "process" "getattr"
 	allow servicemanager $1 "binder" "transfer"
 
-	allow $1 "shell_exec zygote_exec dalvikcache_data_file toolbox_exec rootfs" file "execute read open entrypoint getattr execute_no_trans"
+	allow $1 "shell_exec zygote_exec dalvikcache_data_file rootfs" file "execute read open entrypoint getattr execute_no_trans"
+	allow $1 "toolbox_exec" file "execute read open entrypoint getattr execute_no_trans" || true
 	allow $1 "devpts" chr_file "getattr ioctl"
 	allow $1 $1 "file" "open getattr"
 	allow $1 $1 "unix_stream_socket" "create connect"
 	allow $1 $1 "process" "sigchld setpgid setsched fork signal"
 	allow $1 $1 "fifo_file" "read getattr write"
 	allow $1 "system_server servicemanager" "binder" "call transfer"
-	allow $1 activity_service service_manager "find"
+	allow $1 activity_service service_manager "find" || true
 
 	allow $1 kernel system "syslog_read syslog_mod"
 	allow $1 $1 capability2 "syslog"
@@ -141,7 +96,7 @@ function suDaemonRights() {
 	allow su_daemon su_daemon "process" "fork sigchld"
 
 	#toolbox needed for log
-	allow su_daemon toolbox_exec "file" "execute read open execute_no_trans"
+	allow su_daemon toolbox_exec "file" "execute read open execute_no_trans" || true
 
 	#Create /dev/me.phh.superuser. Could be done by init
 	allow su_daemon device "dir" "write add_name"
@@ -166,6 +121,8 @@ function suDaemonRights() {
 }
 
 cp "$scriptdir"/bin/su sbin/su
+addFile sbin/su
+
 if [ -f "sepolicy" ];then
 	#Create domains if they don't exist
 	"$scriptdir"/bin/sepolicy-inject -z su -P sepolicy
@@ -184,6 +141,7 @@ if [ -f "sepolicy" ];then
 
 	#Allow init to execute su daemon/transition
 	allow init su_daemon process "transition"
+	noaudit init su_daemon process "rlimitinh siginh noatsecure"
 	suDaemonRights
 
 	allowLog su
@@ -193,26 +151,11 @@ if [ -f "sepolicy" ];then
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedobject -s su_device -P sepolicy
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su_daemon -P sepolicy
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su -P sepolicy
-	if [ "$2" == "eng" ];then
+	if [ "$1" == "eng" ];then
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
 	fi
 fi
 
 sed -i -E '/on init/a \\tchmod 0755 /sbin' init.rc
 echo -e 'service su /sbin/su --daemon\n\tclass main\n\tseclabel u:r:su_daemon:s0\n' >> init.rc
-
-echo -e 'sbin/su\ninit.rc\nsepolicy\nfile_contexts' | cpio -o -H newc > ramdisk2
-
-if [ -f "$d"/ramdisk.gz ];then
-	#TODO: Why can't I recreate initramfs from scratch?
-	#Instead I use the append method. files gets overwritten by the last version if they appear twice
-	#Hence sepolicy/su/init.rc are our version
-	cat ramdisk1 ramdisk2 |gzip -9 -c > "$d"/ramdisk.gz
-fi
-cd "$d"
-rm -Rf "$d2"
-"$scriptdir/bin/bootimg-repack" "$f"
-cp new-boot.img "$homedir"
-
-cd "$homedir"
-rm -Rf "$d"
+addFile init.rc
