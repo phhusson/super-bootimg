@@ -83,6 +83,17 @@ function allow() {
 	done
 }
 
+function noaudit() {
+	addFile sepolicy
+	for s in $1;do
+		for t in $2;do
+			for p in $4;do
+				"$scriptdir"/bin/sepolicy-inject -s $s -t $t -c $3 -p $p -P sepolicy
+			done
+		done
+	done
+}
+
 startBootImgEdit "$1"
 
 shift
