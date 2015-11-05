@@ -20,7 +20,9 @@ find known-imgs -type f |while read i;do
 	destination="output/$folder/orig-boot.img"
 
 	curr=""
-	cat $i |while read j;do
+	OLD_IFS="$IFS"
+	IFS=$'\n'
+	for j in $(cat $i);do
 		if grep -qE '^http' <<<$j;then
 			mktempd
 			curr="$d/$(basename "$j")"
@@ -37,7 +39,10 @@ find known-imgs -type f |while read i;do
 			tar xf "$curr" -C "$d" "$file"
 			curr="$(find "$d" -name "$(basename "$j")")"
 		fi
+		echo $curr
 	done
-	cp "$curr" "$destination"
+	IFS="$OLD_IFS"
+	cp "${curr}" "$destination"
+	rm -f result
 	clean
 done
