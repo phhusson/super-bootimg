@@ -16,7 +16,7 @@ find known-imgs -type f |while read i;do
 	curr=""
 	cat $i |while read j;do
 		if grep -qE '^http' <<<$j;then
-			curr="$(mktemp)"
+			curr="$(mktemp -d)/$(basename "$j")"
 			wget "$j" -O $curr
 		elif grep -qE '\.zip$' <<<$curr;then
 			d="$(mktemp -d)"
