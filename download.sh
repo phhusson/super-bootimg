@@ -7,6 +7,7 @@ function clean() {
 	rm -Rf $TOCLEAN
 	TOCLEAN=""
 }
+trap cleanup EXIT
 
 function mktempd() {
 	d="$(mktemp -d)"
@@ -33,7 +34,7 @@ find known-imgs -type f |while read i;do
 		elif grep -qE '\.tgz$' <<<$curr;then
 			mktempd
 			file="$(tar tf "$curr" |grep -E "/$j")"
-			tar xf "$curr" "$file" -C "$d"
+			tar xf "$curr" -C "$d" "$file"
 			curr="$(find "$d" -name "$(basename "$j")")"
 		fi
 	done
