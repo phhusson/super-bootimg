@@ -9,11 +9,21 @@ find output -name orig-boot.img |while read i;do
 
 		#eng su
 		bash "$scriptdir/bootimg.sh" orig-boot.img "$scriptdir/su/changes.sh" eng
-		mv -f new-boot.img boot-su-eng.img
+		if [ -f new-boot.img.signed ];then
+			mv -f new-boot.img.signed boot-su-eng.img
+			rm -f new-boot.img
+		else
+			mv -f new-boot.img boot-su-eng.img
+		fi
 
 		#user su
 		bash "$scriptdir/bootimg.sh" orig-boot.img "$scriptdir/su/changes.sh"
-		mv -f new-boot.img boot-su-user.img
+		if [ -f new-boot.img.signed ];then
+			mv -f new-boot.img.signed boot-su-eng.img
+			rm -f new-boot.img
+		else
+			mv -f new-boot.img boot-su-eng.img
+		fi
 
 
 	popd
