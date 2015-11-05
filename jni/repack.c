@@ -66,7 +66,10 @@ int main(int argc, char **argv) {
 	//}
 	//
 	struct boot_img_hdr *ihdr = (struct boot_img_hdr*) ibase;
-	assert(ihdr->page_size == 2048);
+	assert(
+			ihdr->page_size == 2048 ||
+			ihdr->page_size == 4096
+			);
 
 	unlink("new-boot.img");
 	int ofd = open("new-boot.img", O_RDWR|O_CREAT, 0644);
