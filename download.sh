@@ -7,7 +7,7 @@ function clean() {
 	rm -Rf $TOCLEAN
 	TOCLEAN=""
 }
-trap cleanup EXIT
+trap clean EXIT
 
 function mktempd() {
 	d="$(mktemp -d)"
