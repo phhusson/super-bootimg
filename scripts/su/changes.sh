@@ -40,9 +40,12 @@ if [ -f "sepolicy" ];then
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su_daemon -P sepolicy
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su -P sepolicy
 
-	if [ "$1" == "eng" ];then
+	if [ "$1" == "power" -o "$1" == "eng" ];then
 		suL8 su
 		suL9 su
+	fi
+
+	if [ "$1" == "eng" ];then
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
 	fi
 fi
