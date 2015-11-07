@@ -94,6 +94,40 @@ function noaudit() {
 	done
 }
 
+#Extracted from global_macros
+r_file_perms="getattr open read ioctl lock"
+x_file_perms="getattr execute execute_no_trans"
+rx_file_perms="$r_file_perms $x_file_perms"
+w_file_perms="open append write"
+rwx_file_perms="$rx_file_perms $w_dir_perms"
+rw_socket_perms="ioctl read getattr write setattr lock append bind connect getopt setopt shutdown"
+create_socket_perms="create $rw_socket_perms"
+rw_stream_socket_perms="$rw_socket_perms listen accept"
+create_stream_socket_perms="create $rw_stream_socket_perms"
+r_dir_perms="open getattr read search ioctl"
+w_dir_perms="open search write add_name remove_name"
+ra_dir_perms="$r_dir_perms add name write"
+rw_dir_perms="$r_dir_perms $w_dir_perms"
+create_dir_perms="create reparent rename rmdir setattr $rw_dir_perms"
+
+function allowFSR() {
+	allow "$1" "$2" dir "$r_dir_perms"
+	allow "$1" "$2" file "$r_file_perms"
+	allow "$1" "$2" lnk_file "read"
+}
+
+function allowFSRW() {
+	allow "$1" "$2" dir "$rw_dir_perms"
+	allow "$1" "$2" file "$rw_file_perms"
+	allow "$1" "$2" lnk_file "read"
+}
+
+function allowFSRWX() {
+	allowFSRW "$1" "$2"
+	allow "$1" "$2" file "$x_file_perms"
+}
+
+
 startBootImgEdit "$1"
 
 shift
