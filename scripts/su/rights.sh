@@ -39,9 +39,9 @@ function suRights() {
 	allow servicemanager $1 "binder" "transfer"
 	allow system_server su binder "call"
 
-	allow $1 "shell_exec zygote_exec dalvikcache_data_file rootfs system_file" file "$rx_file_perms"
+	allow $1 "shell_exec zygote_exec dalvikcache_data_file rootfs system_file" file "$rx_file_perms entrypoint"
 	#toolbox_exec is Android 6.0, was "system_file" before
-	allow $1 "toolbox_exec" file "$rx_file_perms" || true
+	allow $1 "toolbox_exec" file "$rx_file_perms entrypoint" || true
 	allow $1 "devpts" chr_file "getattr ioctl"
 	allow $1 $1 "file" "open getattr"
 	allow $1 $1 "unix_stream_socket" "create connect write"
