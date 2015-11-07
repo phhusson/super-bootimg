@@ -74,6 +74,7 @@ function doneBootImgEdit() {
 #allow <list of scontext> <list of tcontext> <class> <list of perm>
 function allow() {
 	addFile sepolicy
+	[ -z "$1" -o -z "$2" -o -z "$3" -o -z "$4" ] && false
 	for s in $1;do
 		for t in $2;do
 			for p in $4;do
@@ -99,6 +100,7 @@ r_file_perms="getattr open read ioctl lock"
 x_file_perms="getattr execute execute_no_trans"
 rx_file_perms="$r_file_perms $x_file_perms"
 w_file_perms="open append write"
+rw_file_perms="$r_file_perms $w_file_perms"
 rwx_file_perms="$rx_file_perms $w_dir_perms"
 rw_socket_perms="ioctl read getattr write setattr lock append bind connect getopt setopt shutdown"
 create_socket_perms="create $rw_socket_perms"
