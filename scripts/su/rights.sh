@@ -51,7 +51,7 @@ function suRights() {
 	allow $1 $1 "file" "$rwx_file_perms"
 	allow $1 $1 "unix_stream_socket" "$create_stream_socket_perms"
 	allow $1 $1 "process" "sigchld setpgid setsched fork signal"
-	allow $1 $1 "fifo_file" "$rwx_file_perms"
+	allow $1 $1 "fifo_file" "$rw_file_perms"
 }
 
 function suReadLogs() {
@@ -72,12 +72,12 @@ function suToApps() {
 
 #Refer/comment to super-bootimg's issue #4
 function suFirewall() {
-	suToApps
+	suToApps $1
 
 	allow $1 $1 unix_stream_socket "$create_stream_socket_perms"
-	allow $1 $1 rawip_socket "$rw_socket_perms"
-	allow $1 $1 udp_socket "$rw_socket_perms"
-	allow $1 $1 tcp_socket "$rw_socket_perms"
+	allow $1 $1 rawip_socket "$create_socket_perms"
+	allow $1 $1 udp_socket "$create_socket_perms"
+	allow $1 $1 tcp_socket "$create_socket_perms"
 	allow $1 $1 capability "net_raw net_admin"
 }
 
@@ -106,6 +106,7 @@ function suMiscL9() {
 	#Remounting /system RW
 	allow $1 labeledfs filesystem "remount unmount"
 	allowFSRW $1 block_device
+	allow $1 block_device blk_file "$rw_file_perms"
 
 	allow $1 $1 capability "sys_admin"
 }
