@@ -89,7 +89,10 @@ function suMiscL1() {
 	allowFSRWX $1 shell_data_file
 
 	#Access to /sdcard & friends
-	allowFSR $1 "storage_file mnt_user_file fuse"
+
+	#Those are AndroidM specific
+	allowFSR $1 "storage_file mnt_user_file" || true
+	allowFSR $1 "fuse"
 }
 
 function suMiscL8() {
