@@ -54,8 +54,13 @@ function suRights() {
 }
 
 function suReadLogs() {
+	#dmesg
 	allow $1 kernel system "syslog_read syslog_mod"
 	allow $1 $1 capability2 "syslog"
+
+	#logcat
+	allow $1 logdr_socket sock_file "write"
+	allow $1 logd unix_stream_socket "connectto $rw_socket_perms"
 }
 
 function suToApps() {
