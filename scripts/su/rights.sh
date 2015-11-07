@@ -26,6 +26,14 @@ function allowLog() {
 	allow $1 devpts chr_file "read write open"
 }
 
+#Rights to be added for services/apps to talk (back) to su
+function suBack() {
+	allow system_server $1 binder "transfer"
+
+	#ES Explorer opens a sokcet
+	allow untrusted_app su unix_stream_socket "$rw_socket_perms connectto"
+}
+
 #This is the vital minimum for su to open a uid 0 shell
 function suRights() {
 	#Communications with su_daemon
@@ -112,8 +120,10 @@ function suMiscL9() {
 }
 
 function suL0() {
+	suBack $1
+
 	suMiscL0 $1
-	suReadLogs su
+	suReadLogs $1
 }
 
 function suL1() {
