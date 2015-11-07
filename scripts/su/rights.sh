@@ -43,14 +43,15 @@ function suRights() {
 	#toolbox_exec is Android 6.0, was "system_file" before
 	allow $1 "toolbox_exec" file "$rx_file_perms entrypoint" || true
 	allow $1 "devpts" chr_file "getattr ioctl"
-	allow $1 $1 "file" "open getattr"
-	allow $1 $1 "unix_stream_socket" "create connect write"
-	allow $1 $1 "process" "sigchld setpgid setsched fork signal"
-	allow $1 $1 "fifo_file" "read getattr write"
 	allow $1 "system_server servicemanager" "binder" "call transfer"
 	allow $1 activity_service service_manager "find" || true
-
 	allow $1 untrusted_app_devpts chr_file "read write open getattr ioctl"
+
+	#Give full access to itself
+	allow $1 $1 "file" "$rwx_file_perms"
+	allow $1 $1 "unix_stream_socket" "$create_stream_socket_perms"
+	allow $1 $1 "process" "sigchld setpgid setsched fork signal"
+	allow $1 $1 "fifo_file" "$rwx_file_perms"
 }
 
 function suReadLogs() {
