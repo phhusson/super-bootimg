@@ -1,124 +1,9 @@
 #!/system/bin/sh
 
-#allowSuClient <scontext>
-function allowSuClient() {
-	#All domain-s already have read access to rootfs
-	allow $1 rootfs file "execute_no_trans execute" #TODO: Why do I need execute?!? (on MTK 5.1, kernel 3.10)
-	allow $1 su_daemon unix_stream_socket "connectto getopt"
+#self = $scr
 
-	allow $1 su_device dir "search read"
-	allow $1 su_device sock_file "read write"
-	allow su_daemon $1 "fd" "use"
-
-	allow su_daemon $1 fifo_file "read write getattr ioctl"
-
-	#Read /proc/callerpid/cmdline in from_init, drop?
-	#Requiring sys_ptrace sucks
-	allow su_daemon "$1" "dir" "search"
-	allow su_daemon "$1" "file" "read open"
-	allow su_daemon "$1" "lnk_file" "read"
-	allow su_daemon su_daemon "capability" "sys_ptrace"
-
-	#TODO: Split in for su/su_sensitive/su_cts
-	allow su "$1" "fd" "use"
-	allow su "$1" "fifo_file" "read write"
-}
-
-#allowLog <scontext>
-function allowLog() {
-	allow $1 logdw_socket sock_file "write"
-	allow $1 logd unix_dgram_socket "sendto"
-	allow logd $1 dir "search"
-	allow logd $1 file "read open getattr"
-	allow $1 $1 dir "search read"
-	allow $1 $1 "unix_dgram_socket" "create connect write"
-	allow $1 $1 "lnk_file" "read"
-	allow $1 $1 file "read"
-	allow $1 toolbox_exec file "read" || true
-	allow $1 devpts chr_file "read write open"
-}
-
-function suDaemonTo() {
-	allow su_daemon $1 "process" "transition"
-	noaudit su_daemon $1 "process" "siginh rlimitinh noatsecure"
-}
-
-function suRights() {
-	#Communications with su_daemon
-	allow $1 "su_daemon" fd "use"
-	allow $1 "su_daemon" process "sigchld"
-	allow $1 "su_daemon" "unix_stream_socket" "read write"
-
-	allow servicemanager $1 "dir" "search read"
-	allow servicemanager $1 "file" "open read"
-	allow servicemanager $1 "process" "getattr"
-	allow servicemanager $1 "binder" "transfer"
-
-	allow $1 "shell_exec zygote_exec dalvikcache_data_file rootfs" file "execute read open entrypoint getattr execute_no_trans"
-	allow $1 "toolbox_exec" file "execute read open entrypoint getattr execute_no_trans" || true
-	allow $1 "devpts" chr_file "getattr ioctl"
-	allow $1 $1 "file" "open getattr"
-	allow $1 $1 "unix_stream_socket" "create connect"
-	allow $1 $1 "process" "sigchld setpgid setsched fork signal"
-	allow $1 $1 "fifo_file" "read getattr write"
-	allow $1 "system_server servicemanager" "binder" "call transfer"
-	allow $1 activity_service service_manager "find" || true
-
-	allow $1 kernel system "syslog_read syslog_mod"
-	allow $1 $1 capability2 "syslog"
-
-	allow $1 untrusted_app_devpts chr_file "read write open getattr ioctl"
-}
-
-function suDaemonRights() {
-	allow su_daemon rootfs file "entrypoint"
-
-	allow su_daemon su_daemon "dir" "search read"
-	allow su_daemon su_daemon "file" "read write open"
-	allow su_daemon su_daemon "lnk_file" "read"
-	allow su_daemon su_daemon "unix_dgram_socket" "create connect write"
-	allow su_daemon su_daemon "unix_stream_socket" "create bind listen accept getopt read write"
-
-	allow su_daemon devpts chr_file "read write open"
-	allow su_daemon untrusted_app_devpts chr_file "read write open"
-
-	allow su_daemon su_daemon "capability" "setuid setgid"
-
-	#Access to /data/data/me.phh.superuser/xxx
-	allow su_daemon app_data_file "dir" "getattr search write add_name"
-	allow su_daemon app_data_file "file" "getattr read open lock"
-
-	#FIXME: This shouldn't exist
-	#dac_override can be fixed by having pts_slave's fd forwarded over socket
-	#Instead of forwarding the name
-	allow su_daemon su_daemon "capability" "dac_override"
-
-	allow su_daemon su_daemon "process" "fork sigchld"
-
-	#toolbox needed for log
-	allow su_daemon toolbox_exec "file" "execute read open execute_no_trans" || true
-
-	#Create /dev/me.phh.superuser. Could be done by init
-	allow su_daemon device "dir" "write add_name"
-	allow su_daemon su_device "dir" "create setattr remove_name add_name"
-	allow su_daemon su_device "sock_file" "create unlink"
-
-	#Allow su daemon to start su apk
-	allow su_daemon zygote_exec "file" "execute read open execute_no_trans"
-
-	#Send request to APK
-	allow su_daemon su_device dir "search write add_name"
-
-	#Allow su_daemon to switch to su or su_sensitive
-	allow su_daemon su_daemon "process" "setexec"
-
-	#Allow su_daemon to execute a shell (every commands are supposed to go through a shell)
-	allow su_daemon shell_exec file "execute read open"
-
-	allow su_daemon su_daemon "capability" "chown"
-
-	suDaemonTo su
-}
+. "$(dirname "$scr")"/su-communication.sh
+. "$(dirname "$scr")"/rights.sh
 
 cp "$scriptdir"/bin/su sbin/su
 addFile sbin/su
@@ -147,11 +32,17 @@ if [ -f "sepolicy" ];then
 	allowLog su
 	suRights su
 
+	suL0 su
+	suL1 su
+
 	#Need to set su_device/su as trusted to be accessible from other categories
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedobject -s su_device -P sepolicy
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su_daemon -P sepolicy
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su -P sepolicy
+
 	if [ "$1" == "eng" ];then
+		suL8 su
+		suL9 su
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
 	fi
 fi
