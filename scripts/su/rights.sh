@@ -28,7 +28,7 @@ function allowLog() {
 
 #Rights to be added for services/apps to talk (back) to su
 function suBack() {
-	allow system_server $1 binder "transfer"
+	allow system_server $1 binder "call transfer"
 
 	#ES Explorer opens a sokcet
 	allow untrusted_app su unix_stream_socket "$rw_socket_perms connectto"
