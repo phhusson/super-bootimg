@@ -14,10 +14,13 @@ function knownForbidden() {
 
 #Enable the app to write to logs
 function allowLog() {
-	allow $1 logdw_socket sock_file "write"
-	allow $1 logd unix_dgram_socket "sendto"
-	allow logd $1 dir "search"
-	allow logd $1 file "read open getattr"
+	#logdw_socket not in Android 4.4
+	allow $1 logdw_socket sock_file "write" || true
+	#logd not in Android 4.4
+	if allow $1 logd unix_dgram_socket "sendto";then
+		allow logd $1 dir "search"
+		allow logd $1 file "read open getattr"
+	fi
 	allow $1 $1 dir "search read"
 	allow $1 $1 "unix_dgram_socket" "create connect write"
 	allow $1 $1 "lnk_file" "read"
@@ -53,7 +56,8 @@ function suRights() {
 	allow $1 "devpts" chr_file "getattr ioctl"
 	allow $1 "system_server servicemanager" "binder" "call transfer"
 	allow $1 activity_service service_manager "find" || true
-	allow $1 untrusted_app_devpts chr_file "read write open getattr ioctl"
+	#untrusted_app_devpts not in Android 4.4
+	allow $1 untrusted_app_devpts chr_file "read write open getattr ioctl" || true
 
 	#Give full access to itself
 	allow $1 $1 "file" "$rwx_file_perms"
@@ -68,8 +72,10 @@ function suReadLogs() {
 	allow $1 $1 capability2 "syslog"
 
 	#logcat
-	allow $1 logdr_socket sock_file "write"
-	allow $1 logd unix_stream_socket "connectto $rw_socket_perms"
+	#logdr_socket and logd not in Android 4.4
+	if allow $1 logdr_socket sock_file "write";then
+		allow $1 logd unix_stream_socket "connectto $rw_socket_perms"
+	fi
 }
 
 function suToApps() {
@@ -101,7 +107,8 @@ function suMiscL1() {
 
 	#Those are AndroidM specific
 	allowFSR $1 "storage_file mnt_user_file" || true
-	allowFSR $1 "fuse"
+	#fuse context is >= 5.0
+	allowFSR $1 "fuse" || true
 }
 
 function suMiscL8() {
