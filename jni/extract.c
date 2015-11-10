@@ -86,7 +86,8 @@ int main(int argc, char **argv) {
 	struct boot_img_hdr *hdr = (struct boot_img_hdr*) base;
 	assert(
 			hdr->page_size == 2048 ||
-			hdr->page_size == 4096
+			hdr->page_size == 4096 ||
+			hdr->page_size == 16384
 			);
 
 	long pos = hdr->page_size;
