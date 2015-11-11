@@ -77,9 +77,7 @@ function allow() {
 	[ -z "$1" -o -z "$2" -o -z "$3" -o -z "$4" ] && false
 	for s in $1;do
 		for t in $2;do
-			for p in $4;do
-				"$scriptdir"/bin/sepolicy-inject -s $s -t $t -c $3 -p $p -P sepolicy
-			done
+			"$scriptdir"/bin/sepolicy-inject -s $s -t $t -c $3 -p $(echo $4|tr ' ' ',') -P sepolicy
 		done
 	done
 }
