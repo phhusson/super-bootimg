@@ -48,7 +48,6 @@ if [ -f "sepolicy" ];then
 
 	if [ "$1" == "eng" ];then
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
-		"$scriptdir"/bin/sepolicy-inject -Z unionfs -P sepolicy
 	fi
 fi
 
