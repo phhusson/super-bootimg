@@ -23,6 +23,7 @@ if [ -f "sepolicy" ];then
 	#TODO: other contexts want access to su?
 	allowSuClient shell
 	allowSuClient untrusted_app
+	allowSuClient su
 
 	#Allow init to execute su daemon/transition
 	allow init su_daemon process "transition"
