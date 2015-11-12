@@ -43,6 +43,12 @@ function startBootImgEdit() {
 	fi
 
 	INITRAMFS_FILES=""
+
+	if file init |grep -q Intel;then
+		DST_ARCH=x86
+	else
+		DST_ARCH=arm
+	fi
 }
 
 function addFile() {

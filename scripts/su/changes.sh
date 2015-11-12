@@ -5,7 +5,7 @@
 . "$(dirname "$scr")"/su-communication.sh
 . "$(dirname "$scr")"/rights.sh
 
-cp "$scriptdir"/bin/su sbin/su
+cp "$scriptdir"/bin/su-$DST_ARCH sbin/su
 addFile sbin/su
 
 if [ -f "sepolicy" ];then
@@ -47,6 +47,7 @@ if [ -f "sepolicy" ];then
 
 	if [ "$1" == "eng" ];then
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject -Z unionfs -P sepolicy
 	fi
 fi
 
