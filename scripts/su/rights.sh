@@ -99,6 +99,11 @@ function suMiscL0() {
 	allow $1 $1 capability "sys_nice"
 }
 
+function suServicesL1() {
+	allow $1 servicemanager service_manager list
+	allow $1 =service_manager_type-gatekeeper_service service_manager find
+}
+
 function suMiscL1() {
 	#Access to /data/local/tmp/
 	allowFSRWX $1 shell_data_file
@@ -135,6 +140,7 @@ function suL0() {
 
 function suL1() {
 	suMiscL1 $1
+	suServicesL1 $1
 }
 
 function suL8() {
