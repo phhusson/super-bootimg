@@ -7,7 +7,6 @@ TARGETS=extract repack sepolicy-inject/sepolicy-inject
 all: $(TARGETS)
 
 install: $(TARGETS)
-	rm -Rf ../scripts/bin/
 	mkdir -p ../scripts/bin/
 	cp extract ../scripts/bin/bootimg-extract
 	cp repack ../scripts/bin/bootimg-repack
