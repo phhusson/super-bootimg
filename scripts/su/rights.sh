@@ -166,9 +166,12 @@ function suL1() {
 	suServicesL1 $1
 }
 
-function suL8() {
-	#L8 for the moment because of suToApps/dac_override
+function suL3() {
+	suNetworkL3 $1
 	suFirewall $1
+}
+
+function suL8() {
 	suMiscL8 $1
 }
 
