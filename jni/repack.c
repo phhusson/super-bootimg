@@ -11,6 +11,13 @@
 
 #include "bootimg.h"
 
+off_t file_size(char *filename) {
+	struct stat st;
+	if(stat(filename, &st))
+		exit(1);
+	return st.st_size;
+}
+
 int append_file(int ofd, char *filename, off_t pos) {
 	lseek(ofd, pos, SEEK_SET);
 	int fd = open(filename, O_RDONLY);
@@ -22,11 +29,24 @@ int append_file(int ofd, char *filename, off_t pos) {
 }
 
 int append_ramdisk(int ofd, off_t pos) {
-	//TODO:
-	// - MTK ramdisk
 	if(access("ramdisk-mtk", R_OK) == 0) {
-		fprintf(stderr, "Repacking mtk-style ramdisk is not supported yet\n");
-		exit(1);
+		char buf[512];
+		off_t size = file_size("ramdisk.gz");
+		memcpy(buf, "\x88\x16\x88\x58", 4);
+		uint32_t v = size;
+		memcpy(buf+4, &v, sizeof(v)); //Should convert to LE
+
+		//TODO: RECOVERY OR ROOTFS?
+		char str[32];
+		memset(str, 0, sizeof(str));
+		strcpy(str, "ROOTFS");
+		memcpy(buf+8, str, sizeof(str));
+
+		memset(buf+8+sizeof(str), 0xff, 512-8-sizeof(str));
+
+		pwrite(ofd, buf, sizeof(buf), pos);
+
+		return append_file(ofd, "ramdisk.gz", pos + 512) + 512;
 	} else if(access("ramdisk.gz", R_OK) == 0) {
 		return append_file(ofd, "ramdisk.gz", pos);
 	} else {
