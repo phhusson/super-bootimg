@@ -141,6 +141,15 @@ shift
 
 . $scr
 
+if [ -n "$VERSIONED" ];then
+	pushd $scriptdir
+	rev="$(git rev-parse --short HEAD)"
+	popd
+
+	echo $rev > super-bootimg
+	addFile super-bootimg
+fi
+
 doneBootImgEdit
 if [ -f $scriptdir/keystore.x509.pem -a -f $scriptdir/keystore.pk8 ];then
 	java -jar $scriptdir/keystore_tools/BootSignature.jar /boot new-boot.img $scriptdir/keystore.pk8 $scriptdir/keystore.x509.pem new-boot.img.signed

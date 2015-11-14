@@ -54,3 +54,5 @@ fi
 sed -i -E '/on init/a \\tchmod 0755 /sbin' init.rc
 echo -e 'service su /sbin/su --daemon\n\tclass main\n\tseclabel u:r:su_daemon:s0\n' >> init.rc
 addFile init.rc
+
+VERSIONED=1
