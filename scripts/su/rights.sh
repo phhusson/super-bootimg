@@ -66,7 +66,7 @@ function suRights() {
 	#Give full access to itself
 	allow $1 $1 "file" "$rwx_file_perms"
 	allow $1 $1 "unix_stream_socket" "$create_stream_socket_perms"
-	allow $1 $1 "process" "sigchld setpgid setsched fork signal"
+	allow $1 $1 "process" "sigchld setpgid setsched fork signal execmem"
 	allow $1 $1 "fifo_file" "$rw_file_perms"
 }
 
@@ -126,6 +126,9 @@ function suMiscL1() {
 		#fuse context is >= 5.0
 		[ "$ANDROID" -ge 20 ] && allowFSR $1 "fuse"
 	fi
+
+	#strace self
+	allow $1 $1 process "ptrace"
 }
 
 function suMiscL8() {
@@ -137,6 +140,9 @@ function suMiscL8() {
 function suMiscL9() {
 	#Remounting /system RW
 	allow $1 labeledfs filesystem "remount unmount"
+	#Remounting / RW
+	allow $1 rootfs filesystem remount
+
 	allowFSRW $1 block_device
 	allow $1 block_device blk_file "$rw_file_perms"
 
