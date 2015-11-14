@@ -136,6 +136,18 @@ function allowFSRWX() {
 
 startBootImgEdit "$1"
 
+if "$scriptdir/bin/sepolicy-inject" -e -s gatekeeper_service -P sepolicy;then
+	#Android M
+	ANDROID=23
+elif "$scriptdir/bin/sepolicy-inject" -e -c service_manager -P sepolicy;then
+	#Android L MR1
+	ANDROID=21
+#TODO: Android 5.0? Android 4.3?
+else
+	#Assume KitKat
+	ANDROID=19
+fi
+
 shift
 [ -n "$used_scr" ] && shift
 

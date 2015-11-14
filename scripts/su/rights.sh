@@ -52,12 +52,16 @@ function suRights() {
 
 	allow $1 "shell_exec zygote_exec dalvikcache_data_file rootfs system_file" file "$rx_file_perms entrypoint"
 	#toolbox_exec is Android 6.0, was "system_file" before
-	allow $1 "toolbox_exec" file "$rx_file_perms entrypoint" || true
+	[ "$ANDROID" -ge 23 ] && allow $1 "toolbox_exec" file "$rx_file_perms entrypoint"
 	allow $1 "devpts" chr_file "getattr ioctl"
 	allow $1 "system_server servicemanager" "binder" "call transfer"
-	allow $1 activity_service service_manager "find" || true
+	[ "$ANDROID" -ge 23 ] && allow $1 activity_service service_manager "find"
 	#untrusted_app_devpts not in Android 4.4
-	allow $1 untrusted_app_devpts chr_file "read write open getattr ioctl" || true
+	if [ "$ANDROID" -ge 20 ];then
+		allow $1 untrusted_app_devpts chr_file "read write open getattr ioctl"
+	else
+		allow $1 devpts chr_file "read write open getattr ioctl"
+	fi
 
 	#Give full access to itself
 	allow $1 $1 "file" "$rwx_file_perms"
@@ -73,7 +77,8 @@ function suReadLogs() {
 
 	#logcat
 	#logdr_socket and logd not in Android 4.4
-	if allow $1 logdr_socket sock_file "write";then
+	if [ "$ANDROID" -ge 20 ];then
+		allow $1 logdr_socket sock_file "write"
 		allow $1 logd unix_stream_socket "connectto $rw_socket_perms"
 	fi
 }
@@ -100,8 +105,12 @@ function suMiscL0() {
 }
 
 function suServicesL1() {
-	allow $1 servicemanager service_manager list
-	allow $1 =service_manager_type-gatekeeper_service service_manager find
+	[ "$ANDROID" -ge 20 ] && allow $1 servicemanager service_manager list
+	if [ "$ANDROID" -ge 23 ];then
+		allow $1 =service_manager_type-gatekeeper_service service_manager find
+	elif [ "$ANDROID" -ge 20 ];then
+		allow $1 =service_manager_type service_manager find
+	fi
 }
 
 function suMiscL1() {
@@ -110,10 +119,13 @@ function suMiscL1() {
 
 	#Access to /sdcard & friends
 
-	#Those are AndroidM specific
-	allowFSR $1 "storage_file mnt_user_file" || true
-	#fuse context is >= 5.0
-	allowFSR $1 "fuse" || true
+	if [ "$ANDROID" -ge 20 ];then
+		#Those are AndroidM specific
+		[ "$ANDROID" -ge 23 ] && allowFSR $1 "storage_file mnt_user_file"
+
+		#fuse context is >= 5.0
+		[ "$ANDROID" -ge 20 ] && allowFSR $1 "fuse"
+	fi
 }
 
 function suMiscL8() {
