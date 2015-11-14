@@ -35,6 +35,7 @@ if [ -f "sepolicy" ];then
 
 	suL0 su
 	suL1 su
+	suL3 su
 
 	#Need to set su_device/su as trusted to be accessible from other categories
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedobject -s su_device -P sepolicy

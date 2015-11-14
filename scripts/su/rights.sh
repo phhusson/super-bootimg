@@ -98,6 +98,7 @@ function suFirewall() {
 	allow $1 $1 udp_socket "$create_socket_perms"
 	allow $1 $1 tcp_socket "$create_socket_perms"
 	allow $1 $1 capability "net_raw net_admin"
+	allow $1 $1 netlink_route_socket "nlmsg_write"
 }
 
 function suMiscL0() {
@@ -133,6 +134,12 @@ function suMiscL1() {
 
 function suNetworkL0() {
 	"$scriptdir"/bin/sepolicy-inject -a netdomain -s su -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject -a bluetoothdomain -s su -P sepolicy
+}
+
+function suNetworkL1() {
+	allow $1 $1 netlink_route_socket "create setopt bind getattr write nlmsg_read read"
+	allowFSR su net_data_file
 }
 
 function suMiscL8() {
@@ -164,10 +171,10 @@ function suL0() {
 function suL1() {
 	suMiscL1 $1
 	suServicesL1 $1
+	suNetworkL1 $1
 }
 
 function suL3() {
-	suNetworkL3 $1
 	suFirewall $1
 }
 
