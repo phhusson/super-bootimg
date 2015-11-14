@@ -131,6 +131,10 @@ function suMiscL1() {
 	allow $1 $1 process "ptrace"
 }
 
+function suNetworkL0() {
+	"$scriptdir"/bin/sepolicy-inject -a netdomain -s su -P sepolicy
+}
+
 function suMiscL8() {
 	#Allow to mount --bind to a file in /system/
 	allow $1 system_file file "mounton"
@@ -154,6 +158,7 @@ function suL0() {
 
 	suMiscL0 $1
 	suReadLogs $1
+	suNetworkL0 $1
 }
 
 function suL1() {
