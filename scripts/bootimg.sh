@@ -54,10 +54,19 @@ startBootImgEdit() {
 	fi
 }
 
+[[ "toto2" =~ "toto" ]] && good_expr=1
+
 addFile() {
 	#WARNING FIXME: If you want to add toto and toto2
 	#You must add toto2 THEN toto
-	[[ "$INITRAMFS_FILES" =~ "$1" ]] || INITRAMFS_FILES="$INITRAMFS_FILES $*"
+	if [ -n "$good_expr" ];then
+		[[ "$INITRAMFS_FILES" =~ "$1" ]] || INITRAMFS_FILES="$INITRAMFS_FILES $*"
+	else
+		#Slower but doesn't go into the WARNING
+		if ! echo $INITRAMFS_FILES |grep -qE "\b$1\b";then
+			INITRAMFS_FILES="$INITRAMFS_FILES $*"
+		fi
+	fi
 }
 
 doneBootImgEdit() {
