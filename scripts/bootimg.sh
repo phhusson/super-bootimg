@@ -166,9 +166,13 @@ shift
 . $scr
 
 if [ -n "$VERSIONED" ];then
-	pushd $scriptdir
-	rev="$(git rev-parse --short HEAD)"
-	popd
+	if [ -f "$scriptdir"/gitversion ];then
+		rev="$(cat $scriptdir/gitversion)"
+	else
+		pushd $scriptdir
+		rev="$(git rev-parse --short HEAD)"
+		popd
+	fi
 
 	echo $rev > super-bootimg
 	addFile super-bootimg
