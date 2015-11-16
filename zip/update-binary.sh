@@ -14,7 +14,7 @@ rm -Rf /tmp/superuser
 mkdir -p /tmp/superuser
 unzip -o $3 -d /tmp/superuser/
 cd /tmp/superuser/scripts/su/
-bootimg="$(grep -F /boot /etc/recovery.fstab |grep -oE '/dev/[a-zA-Z0-9_./-]*')"
+bootimg="$(grep -E '\b/boot\b' /etc/recovery.fstab |grep -oE '/dev/[a-zA-Z0-9_./-]*')"
 if [ -z "$bootimg" ];then
 	ui_print "Couldn't find boot.img partition"
 	exit 1
