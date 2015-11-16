@@ -1,7 +1,7 @@
 #!/system/bin/sh
 
 #allowSuClient <scontext>
-function allowSuClient() {
+allowSuClient() {
 	#All domain-s already have read access to rootfs
 	allow $1 rootfs file "execute_no_trans execute" #TODO: Why do I need execute?!? (on MTK 5.1, kernel 3.10)
 	allow $1 su_daemon unix_stream_socket "connectto getopt"
@@ -24,12 +24,12 @@ function allowSuClient() {
 	allow su "$1" "fifo_file" "read write"
 }
 
-function suDaemonTo() {
+suDaemonTo() {
 	allow su_daemon $1 "process" "transition"
 	noaudit su_daemon $1 "process" "siginh rlimitinh noatsecure"
 }
 
-function suDaemonRights() {
+suDaemonRights() {
 	allow su_daemon rootfs file "entrypoint"
 
 	allow su_daemon su_daemon "dir" "search read"

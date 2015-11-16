@@ -7,13 +7,13 @@ rx_file_perms="$r_file_perms $x_file_perms"
 w_file_perms="open append write"
 #Here lies everything we know DON'T want
 #Add them as noaudits
-function knownForbidden() {
+knownForbidden() {
 	noaudit $1 dalvikcache_data_file dir "write add_name remove_name"
 	noaudit $1 dalvikcache_data_file file "write append create unlink"
 }
 
 #Enable the app to write to logs
-function allowLog() {
+allowLog() {
 	#logdw_socket not in Android 4.4
 	allow $1 logdw_socket sock_file "write" || true
 	#logd not in Android 4.4
@@ -30,7 +30,7 @@ function allowLog() {
 }
 
 #Rights to be added for services/apps to talk (back) to su
-function suBack() {
+suBack() {
 	allow system_server $1 binder "call transfer"
 
 	#ES Explorer opens a sokcet
@@ -38,7 +38,7 @@ function suBack() {
 }
 
 #This is the vital minimum for su to open a uid 0 shell
-function suRights() {
+suRights() {
 	#Communications with su_daemon
 	allow $1 "su_daemon" fd "use"
 	allow $1 "su_daemon" process "sigchld"
@@ -70,7 +70,7 @@ function suRights() {
 	allow $1 $1 "fifo_file" "$rw_file_perms"
 }
 
-function suReadLogs() {
+suReadLogs() {
 	#dmesg
 	allow $1 kernel system "syslog_read syslog_mod"
 	allow $1 $1 capability2 "syslog"
@@ -83,14 +83,14 @@ function suReadLogs() {
 	fi
 }
 
-function suToApps() {
+suToApps() {
 	allow $1 untrusted_app fifo_file "ioctl getattr"
 	allow $1 app_data_file dir "search getattr"
 	allow $1 app_data_file file "getattr execute read open execute_no_trans"
 }
 
 #Refer/comment to super-bootimg's issue #4
-function suFirewall() {
+suFirewall() {
 	suToApps $1
 
 	allow $1 $1 unix_stream_socket "$create_stream_socket_perms"
@@ -101,11 +101,11 @@ function suFirewall() {
 	allow $1 $1 netlink_route_socket "nlmsg_write"
 }
 
-function suMiscL0() {
+suMiscL0() {
 	allow $1 $1 capability "sys_nice"
 }
 
-function suServicesL1() {
+suServicesL1() {
 	[ "$ANDROID" -ge 20 ] && allow $1 servicemanager service_manager list
 	if [ "$ANDROID" -ge 23 ];then
 		allow $1 =service_manager_type-gatekeeper_service service_manager find
@@ -114,7 +114,7 @@ function suServicesL1() {
 	fi
 }
 
-function suMiscL1() {
+suMiscL1() {
 	#Access to /data/local/tmp/
 	allowFSRWX $1 shell_data_file
 
@@ -132,23 +132,23 @@ function suMiscL1() {
 	allow $1 $1 process "ptrace"
 }
 
-function suNetworkL0() {
+suNetworkL0() {
 	"$scriptdir"/bin/sepolicy-inject -a netdomain -s su -P sepolicy
 	"$scriptdir"/bin/sepolicy-inject -a bluetoothdomain -s su -P sepolicy
 }
 
-function suNetworkL1() {
+suNetworkL1() {
 	allow $1 $1 netlink_route_socket "create setopt bind getattr write nlmsg_read read"
 	allowFSR su net_data_file
 }
 
-function suMiscL8() {
+suMiscL8() {
 	#Allow to mount --bind to a file in /system/
 	allow $1 system_file file "mounton"
 	allow $1 $1 capability "sys_admin"
 }
 
-function suMiscL9() {
+suMiscL9() {
 	#Remounting /system RW
 	allow $1 labeledfs filesystem "remount unmount"
 	#Remounting / RW
@@ -160,7 +160,7 @@ function suMiscL9() {
 	allow $1 $1 capability "sys_admin"
 }
 
-function suL0() {
+suL0() {
 	suBack $1
 
 	suMiscL0 $1
@@ -168,20 +168,20 @@ function suL0() {
 	suNetworkL0 $1
 }
 
-function suL1() {
+suL1() {
 	suMiscL1 $1
 	suServicesL1 $1
 	suNetworkL1 $1
 }
 
-function suL3() {
+suL3() {
 	suFirewall $1
 }
 
-function suL8() {
+suL8() {
 	suMiscL8 $1
 }
 
-function suL9() {
+suL9() {
 	suMiscL9 $1
 }

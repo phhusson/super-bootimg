@@ -14,14 +14,14 @@ else
 	scr="$PWD/changes.sh"
 fi
 
-function cleanup() {
+cleanup() {
 	rm -Rf "$bootimg_extract" "$d2"
 }
 
 trap cleanup EXIT
 
 
-function startBootImgEdit() {
+startBootImgEdit() {
 	f="$(readlink -f "$1")"
 	homedir="$PWD"
 	scriptdir="$(dirname "$(readlink -f "$0")")"
@@ -51,13 +51,13 @@ function startBootImgEdit() {
 	fi
 }
 
-function addFile() {
+addFile() {
 	#WARNING FIXME: If you want to add toto and toto2
 	#You must add toto2 THEN toto
 	[[ "$INITRAMFS_FILES" =~ "$1" ]] || INITRAMFS_FILES="$INITRAMFS_FILES $*"
 }
 
-function doneBootImgEdit() {
+doneBootImgEdit() {
 	#List of files to replace \n separated
 	echo $INITRAMFS_FILES |tr ' ' '\n' | cpio -o -H newc > ramdisk2
 
@@ -78,7 +78,7 @@ function doneBootImgEdit() {
 }
 
 #allow <list of scontext> <list of tcontext> <class> <list of perm>
-function allow() {
+allow() {
 	addFile sepolicy
 	[ -z "$1" -o -z "$2" -o -z "$3" -o -z "$4" ] && false
 	for s in $1;do
@@ -88,7 +88,7 @@ function allow() {
 	done
 }
 
-function noaudit() {
+noaudit() {
 	addFile sepolicy
 	for s in $1;do
 		for t in $2;do
@@ -116,19 +116,19 @@ ra_dir_perms="$r_dir_perms add name write"
 rw_dir_perms="$r_dir_perms $w_dir_perms"
 create_dir_perms="create reparent rename rmdir setattr $rw_dir_perms"
 
-function allowFSR() {
+allowFSR() {
 	allow "$1" "$2" dir "$r_dir_perms"
 	allow "$1" "$2" file "$r_file_perms"
 	allow "$1" "$2" lnk_file "read"
 }
 
-function allowFSRW() {
+allowFSRW() {
 	allow "$1" "$2" dir "$rw_dir_perms"
 	allow "$1" "$2" file "$rw_file_perms"
 	allow "$1" "$2" lnk_file "read"
 }
 
-function allowFSRWX() {
+allowFSRWX() {
 	allowFSRW "$1" "$2"
 	allow "$1" "$2" file "$x_file_perms"
 }
