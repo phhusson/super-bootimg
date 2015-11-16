@@ -19,12 +19,15 @@ cleanup() {
 }
 
 trap cleanup EXIT
-
+#Ensure binaries are executables
+scriptdir="$(dirname "$(readlink -f "$0")")"
+for i in sepolicy-inject bootimg-repack bootimg-extract;do
+	chmod 0755 $scriptdir/bin/$i || true
+done
 
 startBootImgEdit() {
 	f="$(readlink -f "$1")"
 	homedir="$PWD"
-	scriptdir="$(dirname "$(readlink -f "$0")")"
 	bootimg_extract="$(mktemp -d)"
 	cd "$bootimg_extract"
 
