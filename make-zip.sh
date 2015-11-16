@@ -27,7 +27,6 @@ done
 
 for i in bootimg-repack bootimg-extract sepolicy-inject;do
 	cp libs/armeabi/$i $zipfolder/scripts/bin/
-	patchelf --set-interpreter /sbin/linker $zipfolder/scripts/bin/$i
 done
 git rev-parse --short HEAD > $zipfolder/scripts/gitversion
 
