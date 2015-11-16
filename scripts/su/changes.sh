@@ -7,6 +7,7 @@
 
 cp "$scriptdir"/bin/su-$DST_ARCH sbin/su
 addFile sbin/su
+chmod 0755 sbin/su
 
 if [ -f "sepolicy" ];then
 	#Create domains if they don't exist
