@@ -52,6 +52,9 @@ if [ -f "sepolicy" ];then
 	fi
 fi
 
+#Disable recovery overwrite
+sed -i '/flash_recovery/a \    disabled' init.rc
+
 sed -i '/on init/a \    chmod 0755 /sbin' init.rc
 echo -e 'service su /sbin/su --daemon\n\tclass main\n\tseclabel u:r:su_daemon:s0\n' >> init.rc
 addFile init.rc
