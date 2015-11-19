@@ -1,5 +1,16 @@
 #!/system/bin/sh
 
+TMPDIR=/tmp/
+mktempS() {
+	v=$TMPDIR/tmp.$RANDOM
+	mkdir -p $v
+	echo $v
+}
+
+if ! which mktemp;then
+	alias mktemp=mktempS
+fi
+
 if [ "$#" == 0 ];then
 	echo "Usage: $0 <original boot.img> [eng|user]"
 	exit 1
