@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-TMPDIR=/tmp/
+export TMPDIR=/tmp/
 mktempS() {
 	v=$TMPDIR/tmp.$RANDOM
 	mkdir -p $v
