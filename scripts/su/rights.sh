@@ -51,6 +51,8 @@ suRights() {
 	allow system_server su binder "call"
 
 	allow $1 "shell_exec zygote_exec dalvikcache_data_file rootfs system_file" file "$rx_file_perms entrypoint"
+	allow $1 "dalvikcache_data_file rootfs system_file" lnk_file "read getattr"
+	allow $1 "dalvikcache_data_file rootfs system_file" dir "$r_dir_perms"
 	#toolbox_exec is Android 6.0, was "system_file" before
 	[ "$ANDROID" -ge 23 ] && allow $1 "toolbox_exec" file "$rx_file_perms entrypoint"
 	allow $1 "devpts" chr_file "getattr ioctl"
@@ -66,7 +68,7 @@ suRights() {
 	#Give full access to itself
 	allow $1 $1 "file" "$rwx_file_perms"
 	allow $1 $1 "unix_stream_socket" "$create_stream_socket_perms"
-	allow $1 $1 "process" "sigchld setpgid setsched fork signal execmem"
+	allow $1 $1 "process" "sigchld setpgid setsched fork signal execmem getsched"
 	allow $1 $1 "fifo_file" "$rw_file_perms"
 }
 

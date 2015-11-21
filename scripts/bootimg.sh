@@ -142,13 +142,13 @@ create_dir_perms="create reparent rename rmdir setattr $rw_dir_perms"
 allowFSR() {
 	allow "$1" "$2" dir "$r_dir_perms"
 	allow "$1" "$2" file "$r_file_perms"
-	allow "$1" "$2" lnk_file "read"
+	allow "$1" "$2" lnk_file "read getattr"
 }
 
 allowFSRW() {
 	allow "$1" "$2" dir "$rw_dir_perms"
 	allow "$1" "$2" file "$rw_file_perms"
-	allow "$1" "$2" lnk_file "read"
+	allow "$1" "$2" lnk_file "read getattr"
 }
 
 allowFSRWX() {
