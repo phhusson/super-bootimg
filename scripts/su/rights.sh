@@ -30,11 +30,23 @@ allowLog() {
 }
 
 #Rights to be added for services/apps to talk (back) to su
-suBack() {
+suBackL0() {
 	allow system_server $1 binder "call transfer"
 
 	#ES Explorer opens a sokcet
 	allow untrusted_app su unix_stream_socket "$rw_socket_perms connectto"
+
+	#Any domain is allowed to send su "sigchld"
+	#TODO: Have sepolicy-inject handle that
+	#allow "=domain" su process "sigchld"
+	allow "surfaceflinger" "su" "process" "sigchld"
+}
+
+suBackL6() {
+	#Used by CF.lumen (restarts surfaceflinger, and communicates with it)
+	#TODO: Add a rule to enforce surfaceflinger doesn't have dac_override
+	allowFSRWX surfaceflinger "app_data_file"
+	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s surfaceflinger -P sepolicy
 }
 
 #This is the vital minimum for su to open a uid 0 shell
@@ -163,7 +175,7 @@ suMiscL9() {
 }
 
 suL0() {
-	suBack $1
+	suBackL0 $1
 
 	suMiscL0 $1
 	suReadLogs $1
@@ -178,6 +190,10 @@ suL1() {
 
 suL3() {
 	suFirewall $1
+}
+
+suL6() {
+	suBackL6 $1
 }
 
 suL8() {
