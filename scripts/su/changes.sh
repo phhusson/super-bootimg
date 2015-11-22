@@ -26,6 +26,9 @@ if [ -f "sepolicy" ];then
 	allowSuClient untrusted_app
 	allowSuClient su
 
+	#HTC Debug context requires SU
+	"$scriptdir/bin/sepolicy-inject" -e -s ssd_tool -P sepolicy && allowSuClient ssd_tool
+
 	#Allow init to execute su daemon/transition
 	allow init su_daemon process "transition"
 	noaudit init su_daemon process "rlimitinh siginh noatsecure"
