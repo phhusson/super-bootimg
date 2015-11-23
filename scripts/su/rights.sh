@@ -49,12 +49,25 @@ suBackL6() {
 	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s surfaceflinger -P sepolicy
 }
 
+suBind() {
+	#Allow to override /system/xbin/su
+	allow su_daemon su_exec "file" "mounton read"
+
+	#We will create files in /dev/su/, they will be marked as su_device
+	allowFSRWX su_daemon su_device
+	allow su_daemon su_device "file" "relabelfrom"
+	allow su_daemon system_file "file" "relabelto"
+}
+
 #This is the vital minimum for su to open a uid 0 shell
 suRights() {
 	#Communications with su_daemon
 	allow $1 "su_daemon" fd "use"
 	allow $1 "su_daemon" process "sigchld"
 	allow $1 "su_daemon" "unix_stream_socket" "read write"
+
+	#Admit su_daemon is meant to be god.
+	allow su_daemon su_daemon "capability" "sys_admin"
 
 	allow servicemanager $1 "dir" "search read"
 	allow servicemanager $1 "file" "open read"
@@ -190,6 +203,9 @@ suL1() {
 
 suL3() {
 	suFirewall $1
+
+	#Only su_daemon can bind, don't specify domain argument
+	suBind
 }
 
 suL6() {
