@@ -31,7 +31,7 @@ allowLog() {
 
 #Rights to be added for services/apps to talk (back) to su
 suBackL0() {
-	allow system_server $1 binder "call transfer"
+	[ "$ANDROID" -ge 20 ] && allow system_server $1 binder "call transfer"
 
 	#ES Explorer opens a sokcet
 	allow untrusted_app su unix_stream_socket "$rw_socket_perms connectto"
@@ -73,7 +73,7 @@ suRights() {
 	allow servicemanager $1 "file" "open read"
 	allow servicemanager $1 "process" "getattr"
 	allow servicemanager $1 "binder" "transfer"
-	allow system_server su binder "call"
+	[ "$ANDROID" -ge 20 ] && allow system_server su binder "call"
 
 	allow $1 "shell_exec zygote_exec dalvikcache_data_file rootfs system_file" file "$rx_file_perms entrypoint"
 	allow $1 "dalvikcache_data_file rootfs system_file" lnk_file "read getattr"
@@ -81,7 +81,7 @@ suRights() {
 	#toolbox_exec is Android 6.0, was "system_file" before
 	[ "$ANDROID" -ge 23 ] && allow $1 "toolbox_exec" file "$rx_file_perms entrypoint"
 	allow $1 "devpts" chr_file "getattr ioctl"
-	allow $1 "system_server servicemanager" "binder" "call transfer"
+	[ "$ANDROID" -ge 20 ] && allow $1 "system_server servicemanager" "binder" "call transfer"
 	[ "$ANDROID" -ge 23 ] && allow $1 activity_service service_manager "find"
 	#untrusted_app_devpts not in Android 4.4
 	if [ "$ANDROID" -ge 20 ];then
@@ -166,7 +166,8 @@ suNetworkL0() {
 
 suNetworkL1() {
 	allow $1 $1 netlink_route_socket "create setopt bind getattr write nlmsg_read read"
-	allowFSR su net_data_file
+	[ "$ANDROID" -ge 20 ] && allowFSR su net_data_file
+	true
 }
 
 suMiscL8() {
