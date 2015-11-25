@@ -31,7 +31,7 @@ done
 git rev-parse --short HEAD > $zipfolder/scripts/gitversion
 
 mkdir -p $zipfolder/META-INF/com/google/android/
-touch $zipfolder/META-INF/com/google/android/updater-script
+echo > $zipfolder/META-INF/com/google/android/updater-script
 cp zip/update-binary.sh $zipfolder/META-INF/com/google/android/update-binary
 
 p=$PWD
