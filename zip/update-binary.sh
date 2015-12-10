@@ -1,9 +1,10 @@
 #!/sbin/sh
 
 set -e
+set -x
 
 fd=$2
-zip=$3
+zip="$3"
 
 ui_print() {
 	echo "ui_print $1" >> /proc/self/fd/$fd
@@ -12,7 +13,7 @@ ui_print() {
 
 rm -Rf /tmp/superuser
 mkdir -p /tmp/superuser
-unzip -o $3 -d /tmp/superuser/
+unzip -o "$3" -d /tmp/superuser/
 cd /tmp/superuser/scripts/su/
 fstab="/etc/recovery.fstab"
 [ ! -f "$fstab" ] && fstab="/etc/recovery.fstab.bak"
