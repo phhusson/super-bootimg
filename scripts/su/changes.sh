@@ -9,6 +9,35 @@ cp "$scriptdir"/bin/su-$DST_ARCH sbin/su
 addFile sbin/su
 chmod 0755 sbin/su
 
+selinuxmode="user"
+noverity=0
+nocrypt=0
+while [ "$#" -ge 1 ];do
+	case $1 in
+		eng|power|user)
+			selinuxmode="$1"
+			;;
+
+		noverity)
+			noverity=1
+			;;
+		verity)
+			noverity=0
+			;;
+
+		nocrypt_all)
+			nocrypt=2
+			;;
+		nocrypt)
+			nocrypt=1
+			;;
+		crypt)
+			nocrypt=0
+			;;
+	esac
+	shift
+done
+
 if [ -f "sepolicy" ];then
 	#Create domains if they don't exist
 	"$scriptdir"/bin/sepolicy-inject -z su -P sepolicy
@@ -55,6 +84,17 @@ if [ -f "sepolicy" ];then
 	if [ "$1" == "eng" ];then
 		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
 	fi
+fi
+
+#Check if user wants to edit fstab
+if [ "$nocrypt" -ne 0 -o "$noverity" -ne 0 ];then
+	for i in fstab*;do
+		cp $i ${i}.orig
+		[ "$nocrypt" == 1 ] && sed -i 's;\(/data.*\),encryptable=.*;\1;g' $i
+		[ "$nocrypt" == 2 ] && sed -i 's;,encryptable=.*;;g' $i
+		[ "$noverity" == 1 ] && sed -i 's;,verify;;g' $i
+		addFile $i
+	done
 fi
 
 #Disable recovery overwrite

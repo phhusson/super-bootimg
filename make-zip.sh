@@ -34,6 +34,9 @@ mkdir -p $zipfolder/META-INF/com/google/android/
 echo > $zipfolder/META-INF/com/google/android/updater-script
 cp zip/update-binary.sh $zipfolder/META-INF/com/google/android/update-binary
 
+#Default mode is eng verity crypt
+echo 'eng verity crypt' > $zipfolder/config.txt
+
 p=$PWD
 pushd $zipfolder
 zip -r $p/superuser.zip .

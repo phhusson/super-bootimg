@@ -14,6 +14,7 @@ ui_print() {
 rm -Rf /tmp/superuser
 mkdir -p /tmp/superuser
 unzip -o "$3" -d /tmp/superuser/
+modes="$(cat /tmp/superuser/config.txt)"
 cd /tmp/superuser/scripts/su/
 fstab="/etc/recovery.fstab"
 [ ! -f "$fstab" ] && fstab="/etc/recovery.fstab.bak"
@@ -24,7 +25,7 @@ if [ -z "$bootimg" ];then
 fi
 
 ui_print "Found bootimg @ $bootimg"
-sh -x ../bootimg.sh $bootimg eng
+sh -x ../bootimg.sh $bootimg $modes
 ui_print "Generated $pwd/new-boot.img"
 dd if=new-boot.img of=$bootimg bs=8192
 ui_print "Flashed root-ed boot.img"
