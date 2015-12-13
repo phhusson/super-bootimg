@@ -14,7 +14,10 @@ function mktempd() {
 	TOCLEAN+="$d"
 }
 
-find known-imgs -type f |while read i;do
+list="$1"
+[ -z "$list" ] && list="$(find known-imgs -type f)"
+
+echo $list |while read i;do
 	folder="$(cut -d / -f 2- <<<$i)"
 	mkdir -p output/$folder
 	destination="output/$folder/orig-boot.img"
