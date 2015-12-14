@@ -87,7 +87,8 @@ int main(int argc, char **argv) {
 	assert(
 			hdr->page_size == 2048 ||
 			hdr->page_size == 4096 ||
-			hdr->page_size == 16384
+			hdr->page_size == 16384 ||
+			hdr->page_size == 32767
 			);
 
 	long pos = hdr->page_size;
