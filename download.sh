@@ -17,7 +17,7 @@ function mktempd() {
 list="$1"
 [ -z "$list" ] && list="$(find known-imgs -type f)"
 
-echo $list |while read i;do
+echo "$list" |while read i;do
 	folder="$(cut -d / -f 2- <<<$i)"
 	mkdir -p output/$folder
 	destination="output/$folder/orig-boot.img"
