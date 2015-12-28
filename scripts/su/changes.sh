@@ -90,8 +90,13 @@ fi
 if [ "$nocrypt" -ne 0 -o "$noverity" -ne 0 ];then
 	for i in fstab*;do
 		cp $i ${i}.orig
-		[ "$nocrypt" == 1 ] && sed -i 's;\(/data.*\),encryptable=.*;\1;g' $i
-		[ "$nocrypt" == 2 ] && sed -i 's;,encryptable=.*;;g' $i
+		if [ "$nocrypt" == 1 ];then
+			sed -i 's;\(/data.*\),encryptable=.*;\1;g' $i
+			sed -i 's;\(/data.*\),forceencrypt=.*;\1;g' $i
+		elif [ "$nocrypt" == 2 ];then
+			sed -i 's;,encryptable=.*;;g' $i
+			sed -i 's;,forceencrypt=.*;;g' $i
+		fi
 		[ "$noverity" == 1 ] && sed -i 's;,verify;;g' $i
 		addFile $i
 	done
