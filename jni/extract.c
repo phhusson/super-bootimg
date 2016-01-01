@@ -40,6 +40,13 @@ void dump_ramdisk(uint8_t *ptr, size_t size) {
 	}
 }
 
+void search_security_hdr(uint8_t *buf, size_t size) {
+	if(memcmp(buf, "CHROMEOS", 8) == 0) {
+		dump(buf, 0, "chromeos");
+		return;
+	}
+}
+
 int search_security(uint8_t *buf, size_t size, int pos) {
 	//Rockchip signature
 	if(memcmp(buf+1024, "SIGN", 4) == 0) {
@@ -72,6 +79,8 @@ int main(int argc, char **argv) {
 	uint8_t *orig = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
 	uint8_t *base = orig;
 	assert(base);
+
+	search_security_hdr(base, size);
 
 	//We're searching for the header in the whole file, we could stop earlier.
 	//At least HTC and nVidia have a signature header

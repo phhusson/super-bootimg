@@ -43,6 +43,7 @@ startBootImgEdit() {
 	cd "$bootimg_extract"
 
 	"$scriptdir/bin/bootimg-extract" "$f"
+	[ -f chromeos ] && NO_SIGN=1
 	d2="$(mktemp -d)"
 	cd "$d2"
 
@@ -190,6 +191,6 @@ if [ -n "$VERSIONED" ];then
 fi
 
 doneBootImgEdit
-if [ -f $scriptdir/keystore.x509.pem -a -f $scriptdir/keystore.pk8 ];then
+if [ -f $scriptdir/keystore.x509.pem -a -f $scriptdir/keystore.pk8 -a -z "$NO_SIGN" ];then
 	java -jar $scriptdir/keystore_tools/BootSignature.jar /boot new-boot.img $scriptdir/keystore.pk8 $scriptdir/keystore.x509.pem new-boot.img.signed
 fi
