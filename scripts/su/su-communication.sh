@@ -38,9 +38,9 @@ suDaemonRights() {
 	allow su_daemon su_daemon "unix_dgram_socket" "create connect write"
 	allow su_daemon su_daemon "unix_stream_socket" "$create_stream_socket_perms"
 
-	allow su_daemon devpts chr_file "read write open"
+	allow su_daemon devpts chr_file "read write open getattr"
 	#untrusted_app_devpts not in Android 4.4
-	allow su_daemon untrusted_app_devpts chr_file "read write open" || true
+	allow su_daemon untrusted_app_devpts chr_file "read write open getattr" || true
 
 	allow su_daemon su_daemon "capability" "setuid setgid"
 
