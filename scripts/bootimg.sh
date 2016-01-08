@@ -43,7 +43,7 @@ startBootImgEdit() {
 	cd "$bootimg_extract"
 
 	"$scriptdir/bin/bootimg-extract" "$f"
-	[ -f chromeos ] && NO_SIGN=1
+	[ -f chromeos ] && CHROMEOS=1
 	d2="$(mktemp -d)"
 	cd "$d2"
 
@@ -191,6 +191,23 @@ if [ -n "$VERSIONED" ];then
 fi
 
 doneBootImgEdit
-if [ -f $scriptdir/keystore.x509.pem -a -f $scriptdir/keystore.pk8 -a -z "$NO_SIGN" ];then
+if [ -f $scriptdir/keystore.x509.pem -a -f $scriptdir/keystore.pk8 -a -z "$NO_SIGN" -a -z "$CHROMEOS" ];then
 	java -jar $scriptdir/keystore_tools/BootSignature.jar /boot new-boot.img $scriptdir/keystore.pk8 $scriptdir/keystore.x509.pem new-boot.img.signed
+fi
+
+if [ -n "$CHROMEOS" ];then
+	echo " " > toto1
+	echo " " > toto2
+	#TODO: Properly detect ARCH
+	if $scriptdir/bin/futility-arm version > /dev/null;then
+		ARCH=arm
+	else
+		ARCH=x86
+	fi
+	$scriptdir/bin/futility-$ARCH vbutil_keyblock --pack output.keyblock --datapubkey $scriptdir/kernel_data_key.vbpubk --signprivate $scriptdir/kernel_subkey.vbprivk --flags 0x7
+
+	$scriptdir/bin/futility-$ARCH vbutil_kernel --pack new-boot.img.signed --keyblock output.keyblock --signprivate $scriptdir/kernel_data_key.vbprivk --version 1 --vmlinuz new-boot.img --config toto1 --arch arm --bootloader toto2 --flags 0x1
+
+
+	rm -f toto1 toto2 output.keyblock
 fi
