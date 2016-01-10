@@ -108,6 +108,9 @@ suReadLogs() {
 		allow $1 logdr_socket sock_file "write"
 		allow $1 logd unix_stream_socket "connectto $rw_socket_perms"
 	fi
+	if [ "$ANDROID" -ge 22 ];then
+		allow $1 logcat_exec file "getattr execute"
+	fi
 }
 
 suToApps() {
@@ -129,11 +132,12 @@ suFirewall() {
 }
 
 suMiscL0() {
+	#In for untrusted_app in AOSP b/23476772
+	[ "$ANDROID" -ge 20 ] && allow $1 servicemanager service_manager list
 	allow $1 $1 capability "sys_nice"
 }
 
 suServicesL1() {
-	[ "$ANDROID" -ge 20 ] && allow $1 servicemanager service_manager list
 	if [ "$ANDROID" -ge 23 ];then
 		allow $1 =service_manager_type-gatekeeper_service service_manager find
 	elif [ "$ANDROID" -ge 20 ];then
