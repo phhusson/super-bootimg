@@ -89,7 +89,12 @@ doneBootImgEdit() {
 		#TODO: Why can't I recreate initramfs from scratch?
 		#Instead I use the append method. files gets overwritten by the last version if they appear twice
 		#Hence sepolicy/su/init.rc are our version
-		cat ramdisk1 ramdisk2 |gzip -9 -c > "$bootimg_extract"/ramdisk.gz
+		#There is a trailer in CPIO file format. Hence strip-cpio
+		rm -f cpio-*
+		"$scriptdir/bin/strip-cpio" ramdisk1 $INITRAMFS_FILES
+		cat cpio-* ramdisk2 |gzip -9 -c > "$bootimg_extract"/ramdisk.gz
+	else
+		exit 1
 	fi
 
 	cd "$bootimg_extract"

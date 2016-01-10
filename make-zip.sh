@@ -25,7 +25,7 @@ git ls-files scripts |while read i;do
 	cp $i $zipfolder/$(dirname $i)
 done
 
-for i in bootimg-repack bootimg-extract sepolicy-inject;do
+for i in bootimg-repack bootimg-extract sepolicy-inject strip-cpio;do
 	cp libs/armeabi/$i $zipfolder/scripts/bin/
 done
 git rev-parse --short HEAD > $zipfolder/scripts/gitversion
