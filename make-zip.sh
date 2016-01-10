@@ -24,6 +24,8 @@ git ls-files scripts |while read i;do
 	mkdir -p $zipfolder/$(dirname $i)
 	cp $i $zipfolder/$(dirname $i)
 done
+#Do not include x86
+rm $zipfolder/scripts/bin/futility-x86
 
 for i in bootimg-repack bootimg-extract sepolicy-inject strip-cpio;do
 	cp libs/armeabi/$i $zipfolder/scripts/bin/
