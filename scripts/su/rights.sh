@@ -219,4 +219,14 @@ suL8() {
 
 suL9() {
 	suMiscL9 $1
+
+	allowFSRW su_daemon su_daemon
+	allowFSRW su_daemon system_data_file
+	allow su_daemon "labeledfs" filesystem "associate"
+	allow su_daemon su_daemon process setfscreate
+	allow su_daemon tmpfs filesystem associate
+	allow su_daemon su_daemon file relabelfrom
+	allow su_daemon system_file file mounton
+
+	allowFSRW system_server sensors_persist_file
 }

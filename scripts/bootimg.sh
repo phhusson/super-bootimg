@@ -153,7 +153,7 @@ allowFSR() {
 
 allowFSRW() {
 	allow "$1" "$2" dir "$rw_dir_perms create"
-	allow "$1" "$2" file "$rw_file_perms create setattr"
+	allow "$1" "$2" file "$rw_file_perms create setattr unlink rename"
 	allow "$1" "$2" lnk_file "read getattr"
 }
 
