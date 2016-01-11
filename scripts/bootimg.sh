@@ -32,7 +32,7 @@ cleanup() {
 trap cleanup EXIT
 #Ensure binaries are executables
 scriptdir="$(dirname "$(readlink -f "$0")")"
-for i in sepolicy-inject bootimg-repack bootimg-extract;do
+for i in sepolicy-inject bootimg-repack bootimg-extract strip-cpio;do
 	chmod 0755 $scriptdir/bin/$i || true
 done
 
