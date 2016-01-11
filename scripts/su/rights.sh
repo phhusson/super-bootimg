@@ -231,6 +231,4 @@ suL9() {
 	allow su_daemon tmpfs filesystem associate
 	allow su_daemon su_daemon file relabelfrom
 	allow su_daemon system_file file mounton
-
-	allowFSRW system_server sensors_persist_file
 }
