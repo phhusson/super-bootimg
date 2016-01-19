@@ -1,0 +1,4 @@
+Alternative boot.img formats that are not yet supported:
+- Asus/Tegra LNX.blob http://forum.xda-developers.com/showpost.php?p=36925180&postcount=4
+- Old mtk-style
+- Rockchip CRC
