@@ -190,6 +190,13 @@ suMiscL9() {
 	allow $1 block_device blk_file "$rw_file_perms"
 
 	allow $1 $1 capability "sys_admin"
+
+}
+
+suMiscL3() {
+	#Used for ViPER|Audio
+	#This is L3 because mediaserver already has { allow mediaserver self:process execmem; } which is much more dangerous
+	allow mediaserver mediaserver_tmpfs file "execute"
 }
 
 suL0() {
@@ -211,6 +218,8 @@ suL3() {
 
 	#Only su_daemon can bind, don't specify domain argument
 	suBind
+
+	suMiscL3
 }
 
 suL6() {
