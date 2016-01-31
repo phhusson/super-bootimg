@@ -41,4 +41,4 @@ echo 'eng verity crypt' > $zipfolder/config.txt
 
 p=$PWD
 pushd $zipfolder
-zip -r $p/superuser.zip .
+zip -r "$p/superuser-r$(cd $p;git rev-list HEAD --count)".zip .
