@@ -4,6 +4,18 @@ set -e
 set -x
 
 fd=$2
+if [ ! -L /proc/self/fd/$fd ];then
+	#We were given a non-fd
+	#This means we are called from another update.zip we need to find out the fd by ourselves
+
+	#Find the outfd of my parent
+	mypid=$$
+	ppid="$(grep PPid /proc/$mypid/status |grep -oE '[0-9]+')"
+	parent_fd="$(tr '\0' ';' < /proc/$ppid/cmdline  |cut -d \; -f 3)"
+
+	#Assume stupid run_program() which doesn't change FDs
+	fd=$parent_fd
+fi
 zip="$3"
 
 ui_print() {
