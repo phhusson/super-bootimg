@@ -102,6 +102,16 @@ if [ "$nocrypt" -ne 0 -o "$noverity" -ne 0 ];then
 	done
 fi
 
+#Samsung specific
+#Prevent system from loading policy
+if "$scriptdir/bin/sepolicy-inject" -e -s knox_system_app -P sepolicy;then
+	"$scriptdir/bin/sepolicy-inject" --not -s init -t kernel -c security -p load_policy -P sepolicy
+	for i in policyloader_app system_server system_app installd init ueventd runas drsd debuggerd vold zygote auditd servicemanager itsonbs commonplatformappdomain;do
+		"$scriptdir/bin/sepolicy-inject" --not -s "$i" -t security_spota_file -c dir -p read,write -P sepolicy
+		"$scriptdir/bin/sepolicy-inject" --not -s "$i" -t security_spota_file -c file -p read,write -P sepolicy
+	done
+fi
+
 #Disable recovery overwrite
 sed -i '/flash_recovery/a \    disabled' init.rc
 
