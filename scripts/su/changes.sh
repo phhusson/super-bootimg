@@ -38,7 +38,7 @@ while [ "$#" -ge 1 ];do
 	shift
 done
 
-if [ -f "sepolicy" ];then
+if [ -f "sepolicy" -a -z "$UNSUPPORTED_SELINUX" ];then
 	#Create domains if they don't exist
 	"$scriptdir"/bin/sepolicy-inject -z su -P sepolicy
 	"$scriptdir"/bin/sepolicy-inject -z su_device -P sepolicy
@@ -112,11 +112,27 @@ if "$scriptdir/bin/sepolicy-inject" -e -s knox_system_app -P sepolicy;then
 	done
 fi
 
+if [ "$UNSUPPORTED_SELINUX" ];then
+	#Disable SELinux the hard way
+	sed -i -E 's;%s/enforce;/xxenforce;g' init
+	sed -i -E 's;/sys/fs/selinux/checkreqprot;/dev_fs_selinux_checkreqprot;g' init
+	sed -i -E 's;Initializing SELinux ;Initializing FFFinux ;g' init
+	addFile init
+	echo -n 1 > xxenforce
+	addFile xxenforce
+fi
+
 #Disable recovery overwrite
 sed -i '/flash_recovery/a \    disabled' init.rc
 
 sed -i '/on init/a \    chmod 0755 /sbin' init.rc
-echo -e 'service su /sbin/su --daemon\n\tclass main\n\tseclabel u:r:su_daemon:s0\n' >> init.rc
+echo -e 'service su /sbin/su --daemon\n\tclass main' >> init.rc
+if [ -z "$UNSUPPORTED_SELINUX" ];then
+	echo -e '\n\tseclabel u:r:su_daemon:s0\n' >> init.rc
+else
+	echo -e '\n\tseclabel u:r:kernel:s0\n' >> init.rc
+fi
+echo -e '\n' >> init.rc
 addFile init.rc
 
 VERSIONED=1
