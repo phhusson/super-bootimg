@@ -165,8 +165,7 @@ allowFSRWX() {
 
 startBootImgEdit "$1"
 
-#rild has always been there. if file exists but we can't find rild, it's an unsupported SELinux
-if [ -f sepolicy ] && ! "$scriptdir/bin/sepolicy-inject" -e -c rild -P sepolicy;then
+if [ -f sepolicy ] && ! "$scriptdir/bin/sepolicy-inject" -e -c filesystem -P sepolicy;then
 	#Android N
 	UNSUPPORTED_SELINUX=1
 elif "$scriptdir/bin/sepolicy-inject" -e -s gatekeeper_service -P sepolicy;then
