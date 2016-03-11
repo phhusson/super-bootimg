@@ -94,7 +94,6 @@ if [ "$nocrypt" -ne 0 -o "$noverity" -ne 0 ];then
 			sed -i 's;\(/data.*\),encryptable=.*;\1;g' $i
 			sed -i 's;\(/data.*\),forceencrypt=.*;\1;g' $i
 			sed -i 's;\(/data.*\),forcefdeorfbe=.*;\1;g' $i
-			sed -i 's;ro;rw;g' $i
 		elif [ "$nocrypt" == 2 ];then
 			sed -i 's;,encryptable=.*;;g' $i
 			sed -i 's;,forceencrypt=.*;;g' $i
