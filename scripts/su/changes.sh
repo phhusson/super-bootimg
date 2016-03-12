@@ -100,7 +100,7 @@ if [ "$nocrypt" -ne 0 -o "$noverity" -ne 0 ];then
 			sed -i 's;,forcefdeorfbe=.*;;g' $i
 		fi
 		if [ "$noverity" == 1 ];then
-			sed -i 's;,verify(=[^,]*]?;;g' $i
+			sed -i 's;,\{0,1\}verify\(=[^,]*\)\{0,1\};;g' $i
 			sed -i 's;\bro\b;rw;g' $i
 		fi
 		addFile $i
