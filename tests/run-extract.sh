@@ -15,21 +15,30 @@ function testOn() {
 
 function fail() {
 	echo -e "\tTesting $1 on $testFile failed..."
+	rm -Rf $d
 	return 1
 }
 
 function ensureMD5() {
-	[ ! -f "$d/$1" ] && fail "$1"
+	if [ ! -f "$d/$1" ];then
+		fail "$1"
+	fi
 	md5="$(md5sum "$d/$1" |grep -oE '^[0-9a-f]{32}')"
-	[ "$md5" != "$2" ] && fail "$1"
+	if [ "$md5" != "$2" ];then
+		fail "$1"
+	fi
 }
 
 function ensureExists() {
-	[ ! -f "$d/$1" ] && fail "$1 existence"
+	if [ ! -f "$d/$1" ];then
+		fail "$1 existence"
+	fi
 }
 
 function ensureNotExists() {
-	[ -f "$d/$1" ] && fail "$1 non-existence"
+	if [ -f "$d/$1" ];then
+	       fail "$1 non-existence"
+       fi
 }
 
 #Generation mode
