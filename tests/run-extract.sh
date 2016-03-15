@@ -65,5 +65,10 @@ else
 	ensureMD5 kernel 773cdbcfdaa0bfc529ac0b673f357dde
 	ensureMD5 ramdisk.gz 61e51b437419d2d1d6107692296588fc
 	ensureExists chromeos
+
+	testOn ../output/nexus/angler/MMB29V/orig-boot.img
+	ensureMD5 kernel f5263d20c4339370a4b1cf121c5fe4cd
+	ensureMD5 ramdisk.gz 939dccd19c99b349cc891194c5bfd383
+	ensureExists secure
 fi
 rm -Rf $d
