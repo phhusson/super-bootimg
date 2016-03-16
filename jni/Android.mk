@@ -8,6 +8,7 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 LOCAL_LDFLAGS := -static
 LOCAL_STATIC_LIBRARIES := libc libcutils libbootimg
+LOCAL_C_INCLUDES := jni/include/
 LOCAL_SRC_FILES := extract.c
 include $(BUILD_EXECUTABLE)
 
@@ -44,6 +45,7 @@ include $(BUILD_EXECUTABLE)
 include $(CLEAR_VARS)
 LOCAL_MODULE := libbootimg
 LOCAL_MODULE_TAGS := optional
+LOCAL_C_INCLUDES := jni/include/
 LOCAL_SRC_FILES := lib-parse.c
 include $(BUILD_STATIC_LIBRARY)
 

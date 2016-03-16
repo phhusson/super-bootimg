@@ -9,7 +9,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "lib.h"
+#include <libbootimg.h>
 
 static void dump(uint8_t *ptr, size_t size, const char* filename) {
 	unlink(filename);

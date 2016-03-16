@@ -10,7 +10,7 @@
 #include <string.h>
 
 #include "bootimg.h"
-#include "lib.h"
+#include <libbootimg.h>
 
 //TODO: Search for other header types
 static int parse_ramdisk(uint8_t *ptr, size_t size) {
