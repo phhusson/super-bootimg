@@ -58,7 +58,11 @@ static int search_security(uint8_t *buf, size_t size, int pos) {
  */
 int bootimg_parse(const char* filename, int do_stuff(int flags, uint8_t *ptr, int long)) {
 	int fd = open(filename, O_RDONLY);
+	if(fd<0)
+		return 1;
 	off_t size = lseek(fd, 0, SEEK_END);
+	if(size<=0)
+		return 1;
 	lseek(fd, 0, SEEK_SET);
 	uint8_t *orig = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
 	uint8_t *base = orig;
@@ -76,6 +80,8 @@ int bootimg_parse(const char* filename, int do_stuff(int flags, uint8_t *ptr, in
 		//We're searching every 256bytes, is it ok?
 		base += 256;
 	}
+	if(memcmp(base, BOOT_MAGIC, BOOT_MAGIC_SIZE) != 0)
+		return 1;
 	void *kernel = NULL, *ramdisk = NULL, *second = NULL, *qcdt = NULL;
 
 	struct boot_img_hdr *hdr = (struct boot_img_hdr*) base;
