@@ -148,3 +148,106 @@ int bootimg_parse(const char* filename, int do_stuff(int flags, uint8_t *ptr, in
 	close(fd);
 	return 0;
 }
+
+int bootimg_parse_ramdisk(const char *decompressor, int flags, uint8_t *ptr, long size,
+		int (*do_stuff)(const char *filename, int fd, long len)) {
+	(void) flags;
+
+	char ramdisk[] = "/tmp/bootimg.XXXXXX";
+	int ramdiskfd = mkstemp(ramdisk);
+	unlink(ramdisk);
+	long off = 0;
+	while(size > 0) {
+		long ret = write(ramdiskfd, ptr + off, size);
+		if(ret<=0)
+			return __LINE__;
+		size -= ret;
+		off += ret;
+	}
+	lseek(ramdiskfd, 0, SEEK_SET);
+
+	int p[2];
+	if(pipe(p))
+		return __LINE__;
+
+	switch(fork()) {
+		case -1:
+			return __LINE__;
+		case 0:
+			dup2(ramdiskfd, 0);
+			dup2(p[1], 1);
+			execlp(decompressor, decompressor, "-d", "-", NULL);
+			exit(0);
+			break;
+	};
+
+	struct {
+		char magic[6];
+		char ino[8];
+		char mode[8];
+		char uid[8];
+		char gid[8];
+		char nlinks[8];
+		char mtime[8];
+		char filesize[8];
+		char major[8];
+		char minor[8];
+		char rmajor[8];
+		char rminor[8];
+		char namesize[8];
+		char chksum[8];
+	} hdr;
+
+	while(read(p[0], &hdr, sizeof(hdr)) == sizeof(hdr)) {
+		if(strncmp(hdr.magic, "070701", 6) != 0)
+			return __LINE__;
+
+		long alignment = 0;
+		char v[9];
+		v[8]=0;
+
+		memcpy(v, hdr.namesize, 8);
+		long namesize = strtoll(v, NULL, 16);
+
+		memcpy(v, hdr.filesize, 8);
+		long filesize = strtoll(v, NULL, 16);
+
+		char filename[namesize+1];
+		if(read(p[0], filename, namesize) != namesize)
+			return __LINE__;
+		if(strcmp(filename, "TRAILER!!!")==0)
+			break;
+
+		alignment = 110 + namesize;
+		alignment %= 4;
+		if(alignment)
+			read(p[0], v, 4-alignment);
+
+		filename[namesize]=0;
+		char tmpfile[] = "/tmp/bootimg.XXXXXX";
+		int fd = mkstemp(tmpfile);
+		unlink(tmpfile);
+
+		{
+			long s = filesize;
+			char buf[1024];
+			while(s>0) {
+				long n = (sizeof(buf) < s) ? sizeof(buf) : s;
+				long r = read(p[0], buf, n);
+				s -= r;
+				if(r <= 0)
+					return __LINE__;
+			}
+		}
+		lseek(fd, 0, SEEK_SET);
+		if(do_stuff(filename, fd, filesize))
+			return __LINE__;
+
+		alignment = filesize;
+		alignment %= 4;
+		if(alignment)
+			read(p[0], &alignment, 4-alignment);
+		close(fd);
+	}
+	return 0;
+}

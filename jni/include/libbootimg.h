@@ -30,6 +30,7 @@ enum {
 };
 
 extern int bootimg_parse(const char* filename, int do_stuff(int flags, uint8_t *ptr, int long));
+extern int bootimg_parse_ramdisk(const char *decompressor, int flags, uint8_t *ptr, long size, int (*do_stuff)(const char *filename, int fd, long len));
 
 #ifdef _cplusplus
 };

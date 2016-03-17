@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Wall -Wextra -Werror -Wno-sign-compare -std=gnu11
+CFLAGS=-Wall -Wextra -Werror -Wno-sign-compare -std=gnu11 -Iinclude
 LDFLAGS=-static
 
 TARGETS=extract repack sepolicy-inject/sepolicy-inject strip-cpio

@@ -20,6 +20,13 @@ static void dump(uint8_t *ptr, size_t size, const char* filename) {
 	close(ofd);
 }
 
+static int do_stuff_ramdisk(const char *filename, int fd, long size) {
+	(void) fd;
+	(void) size;
+	fprintf(stderr, "Got filename = %s\n", filename);
+	return 0;
+}
+
 static int do_stuff(int flags, uint8_t *base, long size) {
 	switch( flags&BOOT_TYPE ) {
 		case BOOT_HEADER: {
@@ -41,6 +48,10 @@ static int do_stuff(int flags, uint8_t *base, long size) {
 		   dump(base, size, filename);
 		   if(flags&BOOT_MTK)
 			   dump(base, 0, "ramdisk-mtk");
+		   else {
+			   int ret = bootimg_parse_ramdisk("pigz", flags, base, size, do_stuff_ramdisk);
+			   fprintf(stderr, "Parse ramdisk gave %d\n", ret);
+		   }
 		   break;
 		}
 		case BOOT_SECOND:
