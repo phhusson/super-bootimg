@@ -1,7 +1,7 @@
 #ifndef LIB_BOOTIMG_H
 #define LIB_BOOTIMG_H
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -32,7 +32,7 @@ enum {
 extern int bootimg_parse(const char* filename, int do_stuff(int flags, uint8_t *ptr, int long));
 extern int bootimg_parse_ramdisk(const char *decompressor, int flags, uint8_t *ptr, long size, int (*do_stuff)(const char *filename, int fd, long len));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 };
 #endif
 #endif
