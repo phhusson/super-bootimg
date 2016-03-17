@@ -46,8 +46,9 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libbootimg
 LOCAL_MODULE_TAGS := optional
 LOCAL_C_INCLUDES := jni/include/
+LOCAL_COPY_HEADERS := include/libbootimg.h
 LOCAL_SRC_FILES := lib-parse.c
-include $(BUILD_STATIC_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)
 
 include $(my_path)/libselinux/Android.mk
 include $(my_path)/libsepol/Android.mk

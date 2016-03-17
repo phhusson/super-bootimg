@@ -1,6 +1,10 @@
 #ifndef LIB_BOOTIMG_H
 #define LIB_BOOTIMG_H
 
+#ifdef _cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 enum {
@@ -26,4 +30,8 @@ enum {
 };
 
 extern int bootimg_parse(const char* filename, int do_stuff(int flags, uint8_t *ptr, int long));
+
+#ifdef _cplusplus
+};
+#endif
 #endif
