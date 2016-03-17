@@ -234,6 +234,8 @@ int bootimg_parse_ramdisk(const char *decompressor, int flags, uint8_t *ptr, lon
 			while(s>0) {
 				long n = (sizeof(buf) < s) ? sizeof(buf) : s;
 				long r = read(p[0], buf, n);
+				if(write(fd, buf, r) != r)
+					return __LINE__;
 				s -= r;
 				if(r <= 0)
 					return __LINE__;
