@@ -50,5 +50,5 @@ LOCAL_COPY_HEADERS := include/libbootimg.h
 LOCAL_SRC_FILES := lib-parse.c
 include $(BUILD_SHARED_LIBRARY)
 
-include $(my_path)/libselinux/Android.mk
-include $(my_path)/libsepol/Android.mk
+#include $(my_path)/libselinux/Android.mk
+#include $(my_path)/libsepol/Android.mk
