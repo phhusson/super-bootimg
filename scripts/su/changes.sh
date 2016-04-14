@@ -40,13 +40,13 @@ done
 
 if [ -f "sepolicy" -a -z "$UNSUPPORTED_SELINUX" ];then
 	#Create domains if they don't exist
-	"$scriptdir"/bin/sepolicy-inject -z su -P sepolicy
-	"$scriptdir"/bin/sepolicy-inject -z su_device -P sepolicy
-	"$scriptdir"/bin/sepolicy-inject -z su_daemon -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -z su -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -z su_device -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -z su_daemon -P sepolicy
 
 	#Autotransition su's socket to su_device
-	"$scriptdir"/bin/sepolicy-inject -s su_daemon -f device -c file -t su_device -P sepolicy
-	"$scriptdir"/bin/sepolicy-inject -s su_daemon -f device -c dir -t su_device -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -s su_daemon -f device -c file -t su_device -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -s su_daemon -f device -c dir -t su_device -P sepolicy
 	allow su_device tmpfs filesystem "associate"
 
 	#Transition from untrusted_app to su_client
@@ -56,7 +56,7 @@ if [ -f "sepolicy" -a -z "$UNSUPPORTED_SELINUX" ];then
 	allowSuClient su
 
 	#HTC Debug context requires SU
-	"$scriptdir/bin/sepolicy-inject" -e -s ssd_tool -P sepolicy && allowSuClient ssd_tool
+	"$scriptdir/bin/sepolicy-inject$SEPOLICY" -e -s ssd_tool -P sepolicy && allowSuClient ssd_tool
 
 	#Allow init to execute su daemon/transition
 	allow init su_daemon process "transition"
@@ -71,9 +71,9 @@ if [ -f "sepolicy" -a -z "$UNSUPPORTED_SELINUX" ];then
 	suL3 su
 
 	#Need to set su_device/su as trusted to be accessible from other categories
-	"$scriptdir"/bin/sepolicy-inject -a mlstrustedobject -s su_device -P sepolicy
-	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su_daemon -P sepolicy
-	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s su -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -a mlstrustedobject -s su_device -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -a mlstrustedsubject -s su_daemon -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -a mlstrustedsubject -s su -P sepolicy
 
 	if [ "$selinuxmode" == "power" -o "$selinuxmode" == "eng" ];then
 		suL6 su
@@ -82,7 +82,7 @@ if [ -f "sepolicy" -a -z "$UNSUPPORTED_SELINUX" ];then
 	fi
 
 	if [ "$selinuxmode" == "eng" ];then
-		"$scriptdir"/bin/sepolicy-inject -Z su -P sepolicy
+		"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -Z su -P sepolicy
 	fi
 fi
 

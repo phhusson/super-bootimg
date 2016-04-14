@@ -46,7 +46,7 @@ suBackL6() {
 	#Used by CF.lumen (restarts surfaceflinger, and communicates with it)
 	#TODO: Add a rule to enforce surfaceflinger doesn't have dac_override
 	allowFSRWX surfaceflinger "app_data_file"
-	"$scriptdir"/bin/sepolicy-inject -a mlstrustedsubject -s surfaceflinger -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -a mlstrustedsubject -s surfaceflinger -P sepolicy
 }
 
 suBind() {
@@ -164,8 +164,8 @@ suMiscL1() {
 }
 
 suNetworkL0() {
-	"$scriptdir"/bin/sepolicy-inject -a netdomain -s su -P sepolicy
-	"$scriptdir"/bin/sepolicy-inject -a bluetoothdomain -s su -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -a netdomain -s su -P sepolicy
+	"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -a bluetoothdomain -s su -P sepolicy
 }
 
 suNetworkL1() {

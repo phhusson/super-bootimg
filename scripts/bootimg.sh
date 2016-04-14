@@ -112,7 +112,7 @@ allow() {
 	[ -z "$1" -o -z "$2" -o -z "$3" -o -z "$4" ] && false
 	for s in $1;do
 		for t in $2;do
-			"$scriptdir"/bin/sepolicy-inject -s $s -t $t -c $3 -p $(echo $4|tr ' ' ',') -P sepolicy
+			"$scriptdir"/bin/sepolicy-inject$SEPOLICY -s $s -t $t -c $3 -p $(echo $4|tr ' ' ',') -P sepolicy
 		done
 	done
 }
@@ -122,7 +122,7 @@ noaudit() {
 	for s in $1;do
 		for t in $2;do
 			for p in $4;do
-				"$scriptdir"/bin/sepolicy-inject -s $s -t $t -c $3 -p $p -P sepolicy
+				"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -s $s -t $t -c $3 -p $p -P sepolicy
 			done
 		done
 	done
@@ -165,9 +165,12 @@ allowFSRWX() {
 
 startBootImgEdit "$1"
 
-if [ -f sepolicy ] && ! "$scriptdir/bin/sepolicy-inject" -e -c filesystem -P sepolicy;then
-	#Android N
-	UNSUPPORTED_SELINUX=1
+if [ -f sepolicy ] && \
+	! "$scriptdir/bin/sepolicy-inject" -e -c filesystem -P sepolicy && \
+	"$scriptdir/bin/sepolicy-inject-v2" -e -c filesystem -P sepolicy;then
+
+	SEPOLICY="-v2"
+	ANDROID=24
 elif "$scriptdir/bin/sepolicy-inject" -e -s gatekeeper_service -P sepolicy;then
 	#Android M
 	ANDROID=23

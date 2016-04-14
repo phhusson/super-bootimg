@@ -4,6 +4,7 @@
 allowSuClient() {
 	#All domain-s already have read access to rootfs
 	allow $1 rootfs file "execute_no_trans execute" #TODO: Why do I need execute?!? (on MTK 5.1, kernel 3.10)
+	[ "$ANDROID" -ge 24 ] && allowFSR $1 rootfs
 	allow $1 su_daemon unix_stream_socket "connectto getopt"
 
 	allow $1 su_device dir "search read"
