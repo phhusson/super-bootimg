@@ -11,7 +11,7 @@ trap clean EXIT
 
 function mktempd() {
 	d="$(mktemp -d)"
-	TOCLEAN+="$d"
+	TOCLEAN+=" $d"
 }
 
 list="$1"
