@@ -66,6 +66,7 @@ suDaemonRights() {
 
 	#Allow su daemon to start su apk
 	allow su_daemon zygote_exec "file" "execute read open execute_no_trans"
+	allow su_daemon zygote_exec "lnk_file" "execute read open execute_no_trans"
 
 	#Send request to APK
 	allow su_daemon su_device dir "search write add_name"
