@@ -115,6 +115,8 @@ if "$scriptdir/bin/sepolicy-inject" -e -s knox_system_app -P sepolicy;then
 		"$scriptdir/bin/sepolicy-inject" --not -s "$i" -t security_spota_file -c dir -p read,write -P sepolicy
 		"$scriptdir/bin/sepolicy-inject" --not -s "$i" -t security_spota_file -c file -p read,write -P sepolicy
 	done
+
+	"$scriptdir/bin/sepolicy-inject" --auto -s su -p load_policy -P sepolicy
 fi
 
 if [ "$UNSUPPORTED_SELINUX" ];then
