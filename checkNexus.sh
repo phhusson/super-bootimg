@@ -20,14 +20,14 @@ minimumVersion="$( echo $minimumVersion | awk '{print toupper($0)}' )"
 existingDevicesOnly="$( echo $existingDevicesOnly | awk '{print toupper($0)}' )"
 
 #Stable
-regexp='https://dl.google.com/dl/android/aosp/([a-z]+)-([a-z0-9]{3}[0-9]{2}[a-z])-factory-[0-9a-f]*.tgz'
+regexp='https://dl.google.com/dl/android/aosp/([a-z]+)-([a-z0-9]{3}[0-9]{2}[a-z])-factory-[0-9a-f]*.(zip|tgz)'
 curl -s https://developers.google.com/android/nexus/images |
 	grep -F '<a href="https://dl.google.com/dl/android/aosp/'|
 	grep -oE "$regexp" |
 	while read url;do
-		device="$( sed -E 's|'"$regexp"'|\1|g' <<<$url )"
-		releaseLower="$( sed -E 's|'"$regexp"'|\2|g' <<<$url )"
-		release="$( sed -E 's|'"$regexp"'|\2|g' <<<$url |tr a-z A-Z)"
+		device="$( sed -E 's;'"$regexp"';\1;g' <<<$url )"
+		releaseLower="$( sed -E 's;'"$regexp"';\2;g' <<<$url )"
+		release="$( sed -E 's;'"$regexp"';\2;g' <<<$url |tr a-z A-Z)"
 		version=$( echo $release | cut -c 1 )
 
 		if [ $existingDevicesOnly == "YES" ]; then
