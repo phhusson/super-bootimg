@@ -41,5 +41,17 @@ LOCAL_C_INCLUDES := jni/libselinux/include/ jni/libsepol/include/
 LOCAL_CFLAGS += -std=gnu11
 include $(BUILD_EXECUTABLE)
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := sepolicy-inject-v2
+LOCAL_MODULE_TAGS := optional
+LOCAL_FORCE_STATIC_EXECUTABLE := true
+LOCAL_LDFLAGS := -static
+LOCAL_STATIC_LIBRARIES := libc libcutils libsepol_N libselinux
+LOCAL_SRC_FILES := sepolicy-inject/sepolicy-inject.c
+LOCAL_C_INCLUDES := jni/libselinux/include/ jni/libsepol/include/
+LOCAL_CFLAGS += -std=gnu11
+include $(BUILD_EXECUTABLE)
+
 include $(my_path)/libselinux/Android.mk
 include $(my_path)/libsepol/Android.mk
+include $(my_path)/libsepol-N/Android.mk
