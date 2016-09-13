@@ -12,6 +12,7 @@ chmod 0755 sbin/su
 selinuxmode="user"
 noverity=0
 nocrypt=0
+keeprecovery=0
 while [ "$#" -ge 1 ];do
 	case $1 in
 		eng|power|user)
@@ -33,6 +34,9 @@ while [ "$#" -ge 1 ];do
 			;;
 		crypt)
 			nocrypt=0
+			;;
+		keeprecovery)
+			keeprecovery=1
 			;;
 	esac
 	shift
@@ -131,7 +135,9 @@ if [ "$UNSUPPORTED_SELINUX" ];then
 fi
 
 #Disable recovery overwrite
-sed -i '/flash_recovery/a \    disabled' init.rc
+if [ "$keeprecovery" == 0 ];then
+	sed -i '/flash_recovery/a \    disabled' init.rc
+fi
 
 sed -i '/on init/a \    chmod 0755 /sbin' init.rc
 echo -e 'service su /sbin/su --daemon\n\tclass main' >> init.rc
