@@ -100,6 +100,7 @@ doneBootImgEdit() {
 	cd "$bootimg_extract"
 	rm -Rf "$d2"
 	"$scriptdir/bin/bootimg-repack" "$f"
+	echo SEANDROIDENFORCE >> new-boot.img
 	cp new-boot.img "$homedir"
 
 	cd "$homedir"
