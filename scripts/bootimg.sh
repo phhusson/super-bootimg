@@ -222,3 +222,8 @@ if [ -n "$CHROMEOS" ];then
 
 	rm -f toto1 toto2 output.keyblock
 fi
+
+# Silence warning when boot on Samsung phones
+if getprop ro.product.manufacturer | grep -iq '^samsung$'; then
+	echo "SEANDROIDENFORCE" >> "new-boot.img"
+fi
