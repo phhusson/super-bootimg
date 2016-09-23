@@ -150,4 +150,9 @@ fi
 echo -e '\n' >> init.rc
 addFile init.rc
 
+if [ -f init.superuser.rc ];then
+	echo > init.superuser.rc
+	addFile init.superuser.rc
+fi
+
 VERSIONED=1
