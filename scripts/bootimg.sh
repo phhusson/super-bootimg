@@ -224,6 +224,8 @@ if [ -n "$CHROMEOS" ];then
 fi
 
 # Silence warning when boot on Samsung phones
+# XXX: This check ONLY works on LIVE devices, not from script
+# Here this is not a problem because the change is purely cosmetic, but don't rely on this if for anything else
 if getprop ro.product.manufacturer | grep -iq '^samsung$'; then
 	echo "SEANDROIDENFORCE" >> "new-boot.img"
 fi
