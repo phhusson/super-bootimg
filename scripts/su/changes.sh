@@ -136,7 +136,7 @@ fi
 
 #Disable recovery overwrite
 if [ "$keeprecovery" == 0 ];then
-	sed -i '/flash_recovery/a \    disabled' init.rc
+	sed -i '/^service flash_recovery/a \    disabled' init.rc
 fi
 
 sed -i '/on init/a \    chmod 0755 /sbin' init.rc
