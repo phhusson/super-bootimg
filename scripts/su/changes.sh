@@ -58,6 +58,7 @@ if [ -f "sepolicy" -a -z "$UNSUPPORTED_SELINUX" ];then
 	allowSuClient shell
 	allowSuClient untrusted_app
 	allowSuClient platform_app
+	allowSuClient system_app
 	allowSuClient su
 
 	#HTC Debug context requires SU
