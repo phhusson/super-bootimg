@@ -143,9 +143,9 @@ fi
 sed -i '/on init/a \    chmod 0755 /sbin' init.rc
 echo -e 'service su /sbin/su --daemon\n\tclass main' >> init.rc
 if [ -z "$UNSUPPORTED_SELINUX" ];then
-	echo -e '\n\tseclabel u:r:su_daemon:s0\n' >> init.rc
+	echo -e '\tseclabel u:r:su_daemon:s0' >> init.rc
 else
-	echo -e '\n\tseclabel u:r:kernel:s0\n' >> init.rc
+	echo -e '\tseclabel u:r:kernel:s0' >> init.rc
 fi
 echo -e '\n' >> init.rc
 addFile init.rc
