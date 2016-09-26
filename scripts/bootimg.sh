@@ -82,6 +82,7 @@ addFile() {
 }
 
 doneBootImgEdit() {
+	find . -type f -exec touch -t 197001011200 {} \;
 	#List of files to replace \n separated
 	echo $INITRAMFS_FILES |tr ' ' '\n' | cpio -o -H newc > ramdisk2
 
@@ -92,7 +93,9 @@ doneBootImgEdit() {
 		#There is a trailer in CPIO file format. Hence strip-cpio
 		rm -f cpio-*
 		"$scriptdir/bin/strip-cpio" ramdisk1 $INITRAMFS_FILES
-		cat cpio-* ramdisk2 |gzip -9 -c > "$bootimg_extract"/ramdisk.gz
+		cat cpio-* ramdisk2 > ramdisk.tmp
+		touch -t 197001011200 ramdisk.tmp
+		gzip -9 -c -n ramdisk.tmp > "$bootimg_extract"/ramdisk.gz
 	else
 		exit 1
 	fi
