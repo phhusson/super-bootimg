@@ -13,6 +13,7 @@ selinuxmode="user"
 noverity=0
 nocrypt=0
 keeprecovery=0
+hidesu=0
 while [ "$#" -ge 1 ];do
 	case $1 in
 		eng|power|user)
@@ -37,6 +38,9 @@ while [ "$#" -ge 1 ];do
 			;;
 		keeprecovery)
 			keeprecovery=1
+			;;
+		hidesu)
+			hidesu=1
 			;;
 	esac
 	shift
@@ -148,6 +152,17 @@ else
 	echo -e '\tseclabel u:r:kernel:s0' >> init.rc
 fi
 echo -e '\n' >> init.rc
+
+if [ "$hidesu" == 1 ];then
+	cp $scriptdir/bin/hidesu sbin/hidesu
+	addFile sbin/hidesu
+	chmod 0755 sbin/hidesu
+	allow init su process transition
+
+	echo -e 'service hidesu /sbin/hidesu\n\tclass main' >> init.rc
+	echo -e '\tseclabel u:r:su:s0' >> init.rc
+	echo -e '\n' >> init.rc
+fi
 addFile init.rc
 
 if [ -f init.superuser.rc ];then
