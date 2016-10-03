@@ -27,7 +27,7 @@ done
 #Do not include x86
 rm $zipfolder/scripts/bin/futility-x86
 
-for i in bootimg-repack bootimg-extract sepolicy-inject strip-cpio sepolicy-inject-v2;do
+for i in bootimg-repack bootimg-extract sepolicy-inject strip-cpio sepolicy-inject-v2 hidesu;do
 	cp libs/armeabi/$i $zipfolder/scripts/bin/
 done
 git rev-parse --short HEAD > $zipfolder/scripts/gitversion
