@@ -16,6 +16,8 @@ typedef unsigned short int sa_family_t;
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
+#include <sys/glibc-syscalls.h>
+#include <asm/unistd.h>
 
 //WARNING: Calling this will change our current namespace
 //We don't care because we don't want to run from here anyway
@@ -24,8 +26,6 @@ int disableSu(int pid) {
 	asprintf(&path, "/proc/%d/ns/mnt", pid);
 	int fd = open(path, O_RDONLY);
 	if(fd == -1) return 2;
-//TODO: Fix non arm platforms
-#define SYS_setns 375
 	int res = syscall(SYS_setns, fd, 0);
 	if(res == -1) return 3;
 
