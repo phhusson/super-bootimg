@@ -18,6 +18,7 @@ typedef unsigned short int sa_family_t;
 #include <unistd.h>
 #include <sys/glibc-syscalls.h>
 #include <asm/unistd.h>
+#include <strings.h>
 
 //WARNING: Calling this will change our current namespace
 //We don't care because we don't want to run from here anyway
@@ -45,12 +46,12 @@ int main(int argc, char **argv, char **envp) {
 		//Format of am_proc_start is (as of Android 5.1 and 6.0)
 		//UserID, pid, unix uid, processName, hostingType, hostingName
 		char buffer[512];
-		int size = fgets(buffer, sizeof(buffer), p);
+		fgets(buffer, sizeof(buffer), p);
 
 		{
 			char *pos = buffer;
 			while(1) {
-				pos = index(pos, ',');
+				pos = strchr(pos, ',');
 				if(pos == NULL)
 					break;
 				pos[0] = ' ';
