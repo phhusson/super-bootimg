@@ -32,6 +32,10 @@ int disableSu(int pid) {
 	//XXX: What to mount to /sbin...?
 	res = mount("/system", "/sbin", "bind", MS_BIND, "");
 	if(res == -1) return 4;
+	//mount bind /system over /system
+	//This clears /system of any mount-s
+	res = mount("/system", "/system", "bind", MS_BIND, "");
+	if(res == -1) return 4;
 	return 0;
 }
 
