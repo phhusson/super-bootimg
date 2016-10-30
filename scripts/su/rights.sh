@@ -174,6 +174,11 @@ suNetworkL1() {
 	true
 }
 
+suMisc6() {
+	#Used by Call Recorder
+	[ "$ANDROID" -ge 24 ] && allow audioserver audioserver process "execmem"
+}
+
 suMiscL8() {
 	#Allow to mount --bind to a file in /system/
 	allow $1 system_file file "mounton"
@@ -224,6 +229,7 @@ suL3() {
 
 suL6() {
 	suBackL6 $1
+	suMiscL6
 }
 
 suL8() {
