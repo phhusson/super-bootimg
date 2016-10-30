@@ -64,6 +64,7 @@ if [ -f "sepolicy" -a -z "$UNSUPPORTED_SELINUX" ];then
 	allowSuClient platform_app
 	allowSuClient system_app
 	allowSuClient su
+	[ "$ANDROID" -ge 24 ] && allowSuClient priv_app
 
 	#HTC Debug context requires SU
 	"$scriptdir/bin/sepolicy-inject$SEPOLICY" -e -s ssd_tool -P sepolicy && allowSuClient ssd_tool
