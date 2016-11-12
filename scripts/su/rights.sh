@@ -177,6 +177,7 @@ suNetworkL1() {
 suMiscL6() {
 	#Used by Call Recorder
 	[ "$ANDROID" -ge 24 ] && allow audioserver audioserver process "execmem"
+	true
 }
 
 suMiscL8() {
