@@ -129,7 +129,8 @@ int main(int argc, char **argv) {
 
 		if(memcmp(base+pos, "QCDT", 4) == 0 ||
 				memcmp(base+pos, "SPRD", 4) == 0 ||
-				memcmp(base+pos, "DTBH", 4) == 0
+				memcmp(base+pos, "DTBH", 4) == 0 ||
+				memcmp(base+pos, "\xD0\x0D\xFE\xED", 4) == 0
 				) {
 			dump(base+pos, hdr->unused[0], "dt");
 			pos += hdr->unused[0] + hdr->page_size-1;
