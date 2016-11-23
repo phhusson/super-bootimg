@@ -95,7 +95,8 @@ int main(int argc, char **argv) {
 	assert(
 			ihdr->page_size == 2048 ||
 			ihdr->page_size == 4096 ||
-			ihdr->page_size == 16384
+			ihdr->page_size == 16384 ||
+			ihdr->page_size == 32767
 			);
 
 	unlink("new-boot.img");
