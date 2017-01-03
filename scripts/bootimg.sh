@@ -66,7 +66,7 @@ startBootImgEdit() {
 	fi
 }
 
-[[ "toto2" =~ "toto" ]] && good_expr=1
+$([[ "toto2" =~ "toto" ]]) && good_expr=1
 
 addFile() {
 	#WARNING FIXME: If you want to add toto and toto2
