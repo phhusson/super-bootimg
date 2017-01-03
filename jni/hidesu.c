@@ -69,8 +69,19 @@ int main(int argc, char **argv, char **envp) {
 			printf("sscanf returned %d on '%s'\n", ret, buffer);
 			continue;
 		}
-#define GMS_PROC "com.google.android.gms.unstable"
-		if(strcmp(processName, GMS_PROC) == 0) {
+		if(
+				strcmp(processName, "com.google.android.gms.unstable") == 0 ||
+
+				strcmp(processName, "com.att.tv") == 0 ||
+				strcmp(processName, "com.bskyb.skygo") == 0 ||
+
+				strcmp(processName, "com.starfinanz.smob.android.sbanking") == 0 ||
+				strcmp(processName, "com.starfinanz.smob.android.sfinanzstatus") == 0 ||
+				strcmp(processName, "com.starfinanz.smob.android.sfinanzstatus.tablet") == 0 ||
+
+				strcmp(processName, "com.airwatch.androidagent") == 0 ||
+				) {
+
 			printf("Disabling for PID = %d, UID = %d\n", pid, uid);
 			disableSu(pid);
 		}
