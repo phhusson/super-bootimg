@@ -226,6 +226,11 @@ if [ -n "$CHROMEOS" ];then
 	rm -f toto1 toto2 output.keyblock
 fi
 
+# Call custom boot image patch script
+if [ -f "/data/custom_boot_image_patch.sh" ]; then
+	sh -x /data/custom_boot_image_patch.sh new-boot.img
+fi
+
 # Silence warning when boot on Samsung phones
 # XXX: This check ONLY works on LIVE devices, not from script
 # Here this is not a problem because the change is purely cosmetic, but don't rely on this if for anything else
