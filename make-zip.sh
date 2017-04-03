@@ -12,11 +12,6 @@ if [ ! -f libs/armeabi/sepolicy-inject ];then
 	exit 1
 fi
 
-if ! which patchelf;then
-	echo "You must install patchelf"
-	exit 1
-fi
-
 rm -f superuser.zip
 zipfolder="$(mktemp -d)"
 
