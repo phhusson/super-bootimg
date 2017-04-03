@@ -25,6 +25,8 @@ void dump_ramdisk(uint8_t *ptr, size_t size) {
 	//GZip header
 	if(memcmp(ptr, "\x1f\x8b\x08\x00", 4) == 0) {
 		dump(ptr, size, "ramdisk.gz");
+	} else if(memcmp(ptr, "\x5d\x00\x00", 3) == 0) {
+		dump(ptr, size, "ramdisk.lzma");
 	//MTK header
 	} else if(memcmp(ptr, "\x88\x16\x88\x58", 4) == 0) {
 		if(memcmp(ptr+8, "RECOVERY", 8)==0) {

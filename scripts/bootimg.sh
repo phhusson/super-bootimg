@@ -50,6 +50,9 @@ startBootImgEdit() {
 	if [ -f "$bootimg_extract"/ramdisk.gz ];then
 		gunzip -c < "$bootimg_extract"/ramdisk.gz |cpio -i
 		gunzip -c < "$bootimg_extract"/ramdisk.gz > ramdisk1
+	elif [ -f "$bootimg_extract"/ramdisk.lzma ];then
+		lzcat "$bootimg_extract"/ramdisk.lzma |cpio -i
+		lzcat "$bootimg_extract"/ramdisk.lzma > ramdisk1
 	else
 		echo "Unknown ramdisk format"
 		cd "$homedir"
@@ -78,16 +81,19 @@ doneBootImgEdit() {
 	#List of files to replace \n separated
 	echo $INITRAMFS_FILES |tr ' ' '\n' | cpio -o -H newc > ramdisk2
 
+	#TODO: Why can't I recreate initramfs from scratch?
+	#Instead I use the append method. files gets overwritten by the last version if they appear twice
+	#Hence sepolicy/su/init.rc are our version
+	#There is a trailer in CPIO file format. Hence strip-cpio
+	rm -f cpio-*
+	"$scriptdir/bin/strip-cpio" ramdisk1 $INITRAMFS_FILES
+	cat cpio-* ramdisk2 > ramdisk.tmp
+	touch -t 197001011200 ramdisk.tmp
+	#output is called ramdisk.gz, because repack doesn't care about the file format
 	if [ -f "$bootimg_extract"/ramdisk.gz ];then
-		#TODO: Why can't I recreate initramfs from scratch?
-		#Instead I use the append method. files gets overwritten by the last version if they appear twice
-		#Hence sepolicy/su/init.rc are our version
-		#There is a trailer in CPIO file format. Hence strip-cpio
-		rm -f cpio-*
-		"$scriptdir/bin/strip-cpio" ramdisk1 $INITRAMFS_FILES
-		cat cpio-* ramdisk2 > ramdisk.tmp
-		touch -t 197001011200 ramdisk.tmp
 		gzip -9 -c -n ramdisk.tmp > "$bootimg_extract"/ramdisk.gz
+	elif [ -f "$bootimg_extract"/ramdisk.lzma ];then
+		lzma -7 -c ramdisk.tmp > "$bootimg_extract"/ramdisk.gz
 	else
 		exit 1
 	fi
