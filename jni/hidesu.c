@@ -79,7 +79,7 @@ int main(int argc, char **argv, char **envp) {
 				strcmp(processName, "com.starfinanz.smob.android.sfinanzstatus") == 0 ||
 				strcmp(processName, "com.starfinanz.smob.android.sfinanzstatus.tablet") == 0 ||
 
-				strcmp(processName, "com.airwatch.androidagent") == 0 ||
+				strcmp(processName, "com.airwatch.androidagent") == 0
 				) {
 
 			printf("Disabling for PID = %d, UID = %d\n", pid, uid);
