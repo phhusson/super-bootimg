@@ -14,6 +14,7 @@ noverity=0
 nocrypt=0
 keeprecovery=0
 hidesu=0
+permissivesysinit=0
 while [ "$#" -ge 1 ];do
 	case $1 in
 		eng|power|user)
@@ -41,6 +42,9 @@ while [ "$#" -ge 1 ];do
 			;;
 		hidesu)
 			hidesu=1
+			;;
+		permissivesysinit)
+			permissivesysinit=1
 			;;
 	esac
 	shift
@@ -94,6 +98,10 @@ if [ -f "sepolicy" -a -z "$UNSUPPORTED_SELINUX" ];then
 
 	if [ "$selinuxmode" == "eng" ];then
 		"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -Z su -P sepolicy
+	fi
+
+	if [ "$permissivesysinit" == 1 ];then
+		"$scriptdir"/bin/sepolicy-inject"$SEPOLICY" -Z sysinit -P sepolicy
 	fi
 fi
 
