@@ -153,7 +153,12 @@ if [ "$keeprecovery" == 0 ];then
 	sed -i '/^service flash_recovery/a \    disabled' init.rc
 fi
 
-sed -i '/on init/a \    chmod 0755 /sbin' init.rc
+if [ "$hidesu" == 1 ];then
+	sed -i '/on init/a \    chmod 0750 /sbin' init.rc
+else
+	sed -i '/on init/a \    chmod 0755 /sbin' init.rc
+fi
+
 echo -e 'service su /sbin/su --daemon\n\tclass main' >> init.rc
 if [ -z "$UNSUPPORTED_SELINUX" ];then
 	echo -e '\tseclabel u:r:su_daemon:s0' >> init.rc
@@ -164,11 +169,16 @@ echo -e '\n' >> init.rc
 
 if [ "$hidesu" == 1 ];then
 	cp $scriptdir/bin/hidesu sbin/hidesu
+	cp $scriptdir/bin/hidesu-start.sh sbin/hidesu-start.sh
 	addFile sbin/hidesu
-	chmod 0755 sbin/hidesu
-	allow init su process transition
+	addFile sbin/hidesu-start.sh
+	chmod 0750 sbin/hidesu
+	chmod 0750 sbin/hidesu-start.sh
 
-	echo -e 'service hidesu /sbin/hidesu\n\tclass main' >> init.rc
+	allow init su process transition
+	allow rootfs tmpfs filesystem "associate"
+
+	echo -e 'service hidesu /sbin/hidesu-start.sh\n\tclass main' >> init.rc
 	echo -e '\tseclabel u:r:su:s0' >> init.rc
 	echo -e '\n' >> init.rc
 fi
