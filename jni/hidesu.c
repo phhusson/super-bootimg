@@ -2,6 +2,7 @@ typedef unsigned short int sa_family_t;
 //Linux includes
 #define _LINUX_TIME_H
 #define _GNU_SOURCE
+#define MNT_DETACH 2
 #include <sys/types.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -30,12 +31,8 @@ int disableSu(int pid) {
 	int res = syscall(SYS_setns, fd, 0);
 	if(res == -1) return 3;
 
-	//XXX: What to mount to /sbin...?
-	res = mount("/system", "/sbin", "bind", MS_BIND, "");
-	if(res == -1) return 4;
-	//mount bind /system over /system
-	//This clears /system of any mount-s
-	res = mount("/system", "/system", "bind", MS_BIND, "");
+	// just unmount the tmpfs from /sbin
+	res = umount("/sbin", MNT_DETACH);
 	if(res == -1) return 4;
 	return 0;
 }

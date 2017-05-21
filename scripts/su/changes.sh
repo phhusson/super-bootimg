@@ -5,10 +5,6 @@
 . "$(dirname "$scr")"/su-communication.sh
 . "$(dirname "$scr")"/rights.sh
 
-cp "$scriptdir"/bin/su-$DST_ARCH sbin/su
-addFile sbin/su
-chmod 0755 sbin/su
-
 selinuxmode="user"
 noverity=0
 nocrypt=0
@@ -49,6 +45,20 @@ while [ "$#" -ge 1 ];do
 	esac
 	shift
 done
+
+if [ "$hidesu" == 1 ];then
+	if [ ! -d root ]; then
+		mkdir root
+	fi
+	chmod 0700 root
+	cp "$scriptdir"/bin/su-$DST_ARCH root/su
+	addFile root/su
+	chmod 0700 root/su
+else
+	cp "$scriptdir"/bin/su-$DST_ARCH sbin/su
+	addFile sbin/su
+	chmod 0755 sbin/su
+fi
 
 if [ -f "sepolicy" -a -z "$UNSUPPORTED_SELINUX" ];then
 	#Create domains if they don't exist
@@ -154,7 +164,13 @@ if [ "$keeprecovery" == 0 ];then
 fi
 
 sed -i '/on init/a \    chmod 0755 /sbin' init.rc
-echo -e 'service su /sbin/su --daemon\n\tclass main' >> init.rc
+
+if [ "$hidesu" == 1 ];then
+	echo -e 'service su /root/su --daemon\n\tclass main' >> init.rc
+else
+	echo -e 'service su /sbin/su --daemon\n\tclass main' >> init.rc
+fi
+
 if [ -z "$UNSUPPORTED_SELINUX" ];then
 	echo -e '\tseclabel u:r:su_daemon:s0' >> init.rc
 else
@@ -163,12 +179,18 @@ fi
 echo -e '\n' >> init.rc
 
 if [ "$hidesu" == 1 ];then
-	cp $scriptdir/bin/hidesu sbin/hidesu
-	addFile sbin/hidesu
-	chmod 0755 sbin/hidesu
+	allow rootfs tmpfs filesystem "associate"
+
+	sed -i '/on init/a \    chmod 0700 /root' init.rc
+	cp $scriptdir/bin/hidesu root/hidesu
+	cp $scriptdir/bin/hidesu-start.sh root/hidesu-start.sh
+	addFile root/hidesu
+	addFile root/hidesu-start.sh
+	chmod 0700 root/hidesu
+	chmod 0700 root/hidesu-start.sh
 	allow init su process transition
 
-	echo -e 'service hidesu /sbin/hidesu\n\tclass main' >> init.rc
+	echo -e 'service hidesu /root/hidesu-start.sh\n\tclass main' >> init.rc
 	echo -e '\tseclabel u:r:su:s0' >> init.rc
 	echo -e '\n' >> init.rc
 fi
