@@ -34,6 +34,10 @@ int disableSu(int pid) {
 	// just unmount the tmpfs from /sbin
 	res = umount("/sbin", MNT_DETACH);
 	if(res == -1) return 4;
+	//mount bind /system over /system
+	//This clears /system of any mount-s
+	res = mount("/system", "/system", "bind", MS_BIND, "");
+	if(res == -1) return 4;
 	return 0;
 }
 
