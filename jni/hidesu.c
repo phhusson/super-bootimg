@@ -24,17 +24,37 @@ typedef unsigned short int sa_family_t;
 //WARNING: Calling this will change our current namespace
 //We don't care because we don't want to run from here anyway
 int disableSu(int pid) {
-	char *path = NULL;
-	asprintf(&path, "/proc/%d/ns/mnt", pid);
+	char path[64];
+	char buffer[512];
+	char *p, *p2;
+	int ret = 0;
+	snprintf(path, 64, "/proc/%d/ns/mnt", pid);
 	int fd = open(path, O_RDONLY);
 	if(fd == -1) return 2;
 	int res = syscall(SYS_setns, fd, 0);
 	if(res == -1) return 3;
 
-	// just unmount the tmpfs from /sbin
+	// unmount the tmpfs from /sbin
 	res = umount("/sbin", MNT_DETACH);
-	if(res == -1) return 4;
-	return 0;
+	if(res == -1) ret |= 4;
+
+	// unmount anything under /system/
+	snprintf(path, 64, "/proc/%d/mounts", pid);
+	FILE *mf = fopen(path, "r");
+	if(mf == NULL) return ret | 8;
+	while(fgets(buffer, sizeof(buffer), mf) != NULL) {
+		if((p = strchr(buffer, ' ')) == NULL) continue;
+		p++;
+		if((p2 = strchr(p, ' ')) == NULL) continue;
+		*p2 = 0;
+		if(strncmp(p, "/system/", 8)==0 && p2-p>8) {
+			res = umount2(p, MNT_DETACH);
+			if(res == -1) ret |= 16;
+		}
+	}
+	fclose(mf);
+
+	return ret;
 }
 
 int main(int argc, char **argv, char **envp) {
