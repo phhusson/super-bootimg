@@ -30,16 +30,16 @@ char zygote_mnt_ns[256], zygote64_mnt_ns[256], init_mnt_ns[256];
 
 //WARNING: Calling this will change our current namespace
 //We don't care because we don't want to run from here anyway
-int disableSu(int pid) {
+int disableSu(unsigned int pid) {
 	char buffer[512];
 	char *p, *p2;
 	struct stat sb;
 	int ret = 0;
-	snprintf(buffer, sizeof(buffer), "/proc/%d/ns/mnt", pid);
+	snprintf(buffer, sizeof(buffer), "/proc/%u/ns/mnt", pid);
 
 	// check that process is running and wait untit it has own mount namespace
 	if(stat(buffer, &sb) == -1) return 1;
-	while(isStillZygoteNs(buffer)) {
+	while(isStillZygoteNs(buffer) != 0) {
 		kill(pid, SIGCONT);
 		usleep(20);
 		kill(pid, SIGSTOP);
@@ -56,7 +56,7 @@ int disableSu(int pid) {
 	if(res == -1) ret |= 4;
 
 	// unmount anything under /system/
-	snprintf(buffer, sizeof(buffer), "/proc/%d/mounts", pid);
+	snprintf(buffer, sizeof(buffer), "/proc/%u/mounts", pid);
 	FILE *mf = fopen(buffer, "r");
 	if(mf == NULL) return ret | 8;
 	while(fgets(buffer, sizeof(buffer), mf) != NULL) {
@@ -74,24 +74,24 @@ int disableSu(int pid) {
 	return ret;
 }
 
-int isStillZygoteNs(char *ns) {
+int isStillZygoteNs(char *nsFile) {
 	int res;
 	char buffer[256];
-	res = readlink(ns, buffer, sizeof(buffer)-1);
-	if(res < 1) return 1;
+	res = readlink(nsFile, buffer, sizeof(buffer)-1);
+	if(res < 1) return -1;
 	buffer[res] = 0;
 	return (strcmp(buffer, zygote_mnt_ns)==0 || strcmp(buffer, zygote64_mnt_ns)==0);
 }
 
-int prepareZygoteNs(char *ns, char *target) {
+int prepareZygoteNs(char *nsFile, char *target, size_t targetStrSize) {
 	int res;
-	res = readlink(ns, target, 255);
-	if(res < 1) return 1;
+	res = readlink(nsFile, target, targetStrSize);
+	if(res < 1) return -1;
 	target[res] = 0;
-	if(strcmp(target, init_mnt_ns) == 0) return 1;
+	if(strcmp(target, init_mnt_ns) == 0) return -1;
 
 	// set mount ns to Zygote and ensure /sbin is mounted
-	int fd = open(ns, O_RDONLY);
+	int fd = open(nsFile, O_RDONLY);
 	if(fd == -1) return 0;
 	syscall(SYS_setns, fd, 0);
 	close(fd);
@@ -200,11 +200,12 @@ int makeSbinTmpfs() {
 	return 0;
 }
 
-int getPidOfProc(char *cmd) {
+unsigned long int getPidOfProc(char *cmd) {
 	DIR *sd;
 	struct dirent *dir;
 	char buffer[256];
-	int fd, len, cmdlen, ret = 0;
+	int fd, len, cmdlen;
+	unsigned long int ret = 0;
 
 	if((sd = opendir("/proc")) == NULL) {
 		return 0;
@@ -221,7 +222,7 @@ int getPidOfProc(char *cmd) {
 		buffer[len] = 0;
 		if(len>cmdlen && buffer[cmdlen]==32) buffer[cmdlen]= 0;
 		if(strcmp(buffer, cmd) == 0) {
-			ret = atoi(dir->d_name);
+			ret = strtoul(dir->d_name, NULL, 10);
 			break;
 		}
 	}
@@ -240,6 +241,7 @@ int main(int argc, char **argv, char **envp) {
 
 	char buffer[512];
 	int res;
+	unsigned long int ulres;
 
 	// read own (and init) namespace
 	res = readlink("/proc/self/ns/mnt", init_mnt_ns, sizeof(init_mnt_ns)-1);
@@ -251,25 +253,25 @@ int main(int argc, char **argv, char **envp) {
 	printf("Process mount namespace = %s\n", init_mnt_ns);
 
 	// wait for Zygote process and ensure /sbin is mounted in its namespace
-	while((res = getPidOfProc("zygote")) == 0) {
+	while((ulres = getPidOfProc("zygote")) == 0) {
 		usleep(100 * 1000);
 	}
-	snprintf(buffer, sizeof(buffer), "/proc/%d/ns/mnt", res);
-	while(prepareZygoteNs(buffer, zygote_mnt_ns) != 0) {
+	snprintf(buffer, sizeof(buffer), "/proc/%lu/ns/mnt", ulres);
+	while(prepareZygoteNs(buffer, zygote_mnt_ns, sizeof(zygote_mnt_ns)-1) != 0) {
 		usleep(100 * 1000);
 	}
-	printf("Zygote PID = %d, mount namespace = %s\n", res, zygote_mnt_ns);
+	printf("Zygote PID = %lu, mount namespace = %s\n", ulres, zygote_mnt_ns);
 
 	// wait for Zygote64 process and ensure /sbin is mounted in its namespace
-	for(int i = 0; (res = getPidOfProc("zygote64"))==0 && i<50; i++) {
+	for(int i = 0; (ulres = getPidOfProc("zygote64"))==0 && i<50; i++) {
 		usleep(100 * 1000);
 	}
-	if(res != 0) {
-		snprintf(buffer, sizeof(buffer), "/proc/%d/ns/mnt", res);
-		while(prepareZygoteNs(buffer, zygote64_mnt_ns) != 0) {
+	if(ulres != 0) {
+		snprintf(buffer, sizeof(buffer), "/proc/%lu/ns/mnt", ulres);
+		while(prepareZygoteNs(buffer, zygote64_mnt_ns, sizeof(zygote64_mnt_ns)-1) != 0) {
 			usleep(100 * 1000);
 		}
-		printf("Zygote64 PID = %d, mount namespace = %s\n", res, zygote64_mnt_ns);
+		printf("Zygote64 PID = %lu, mount namespace = %s\n", ulres, zygote64_mnt_ns);
 	} else {
 		zygote64_mnt_ns[0] = 0;
 		printf("Zygote64 not running\n");
@@ -292,9 +294,10 @@ int main(int argc, char **argv, char **envp) {
 			}
 		}
 
-		int user, pid, uid;
+		int user;
+		unsigned int pid, uid;
 		char processName[256], hostingType[16], hostingName[256];
-		int ret = sscanf(buffer, "[%d %d %d %256s %16s %256s]",
+		int ret = sscanf(buffer, "[%d %u %u %256s %16s %256s]",
 				&user, &pid, &uid,
 				processName, hostingType, hostingName);
 
@@ -317,7 +320,7 @@ int main(int argc, char **argv, char **envp) {
 				) {
 
 			kill(pid, SIGSTOP);
-			printf("Disabling for PID = %d, UID = %d\n", pid, uid);
+			printf("Disabling for PID = %u, UID = %u\n", pid, uid);
 			disableSu(pid);
 			kill(pid, SIGCONT);
 		}
