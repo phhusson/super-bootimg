@@ -169,16 +169,13 @@ echo -e '\n' >> init.rc
 
 if [ "$hidesu" == 1 ];then
 	cp $scriptdir/bin/hidesu sbin/hidesu
-	cp $scriptdir/bin/hidesu-start.sh sbin/hidesu-start.sh
 	addFile sbin/hidesu
-	addFile sbin/hidesu-start.sh
 	chmod 0750 sbin/hidesu
-	chmod 0750 sbin/hidesu-start.sh
 
 	allow init su process transition
 	allow rootfs tmpfs filesystem "associate"
 
-	echo -e 'service hidesu /sbin/hidesu-start.sh\n\tclass main' >> init.rc
+	echo -e 'service hidesu /sbin/hidesu\n\tclass main' >> init.rc
 	echo -e '\tseclabel u:r:su:s0' >> init.rc
 	echo -e '\n' >> init.rc
 fi
